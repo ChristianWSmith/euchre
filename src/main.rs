@@ -67,8 +67,8 @@ enum Action {
 }
 
 const INPUT_NODES: usize = 554;
-const HIDDEN_NODES: usize = 1108;
 const OUTPUT_NODES: usize = 60;
+const HIDDEN_NODES: usize = (INPUT_NODES + OUTPUT_NODES) * 2 / 3;
 
 struct NeuralNetwork {
     weights_input_hidden: [[f64; HIDDEN_NODES]; INPUT_NODES],
