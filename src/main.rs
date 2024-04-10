@@ -209,12 +209,13 @@ fn main() {
 
     // Total (554)
 
+    // number of max simultaneously extant networks times 2
     const NUM_NETWORKS: usize = 4;
-    const STACK_SIZE: usize = mem::size_of::<NeuralNetwork>() * NUM_NETWORKS * 2;
+    let stack_size: usize = mem::size_of::<NeuralNetwork>() * NUM_NETWORKS * 2;
 
     // Spawn a thread with custom stack size
     let handle = thread::Builder::new()
-        .stack_size(STACK_SIZE)
+        .stack_size(stack_size)
         .spawn(|| {
             let mut inputs: [f64; INPUT_NODES] = [0.0; INPUT_NODES];
             let mut rng = rand::thread_rng();
