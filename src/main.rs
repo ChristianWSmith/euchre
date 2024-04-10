@@ -64,8 +64,8 @@ enum Action {
     PassSuit,
 }
 
-const INPUT_NODES: usize = 4;
-const HIDDEN_NODES: usize = 3;
+const INPUT_NODES: usize = 626;
+const HIDDEN_NODES: usize = 252;
 const OUTPUT_NODES: usize = 60;
 
 struct NeuralNetwork {
@@ -125,7 +125,7 @@ impl NeuralNetwork {
 
         for i in 0..INPUT_NODES {
             for j in 0..HIDDEN_NODES {
-                if rng.gen::<f64>() < 0.5 { // 50% chance of inheriting from self
+                if rng.gen::<f64>() < 0.5 {
                     child.weights_input_hidden[i][j] = self.weights_input_hidden[i][j];
                 } else {
                     child.weights_input_hidden[i][j] = partner.weights_input_hidden[i][j];
@@ -147,7 +147,6 @@ impl NeuralNetwork {
     }
 
     fn query(&self, inputs: &[f64; INPUT_NODES]) -> [f64; OUTPUT_NODES] {
-        // Forward pass
         let mut hidden_outputs = [0.0; HIDDEN_NODES];
         let mut final_outputs = [0.0; OUTPUT_NODES];
 
@@ -172,7 +171,46 @@ impl NeuralNetwork {
 }
 
 fn main() {
-    let inputs = [0.5, 0.2, 0.1, 0.3];
+    // Game (20)
+    // self team score           - 10 indices (0-9 points)
+    // opponent team score       - 10 indices (0-9 points)
+
+    // Round (70)
+    // dealer                    - 4 indices  (1 for each player, left/ally/right)
+    // self team trick count     - 5 indices  (0-4 tricks)
+    // opponent team trick count - 5 indices  (0-4 tricks)
+    // upcard                    - 28 indices (1 for each card)
+    // hand                      - 28 indices (1 for each card)
+
+    // Bid Upcard (12)
+    // self action               - 3 indices  (make, make alone, pass)
+    // left opponent action      - 3 indices  (make, make alone, pass)
+    // ally action               - 3 indices  (make, make alone, pass)
+    // right opponent action     - 3 indices  (make, make alone, pass)
+
+    // Bid Suit (36)
+    // self action               - 9 indices  (4 makes, 4 make alones, pass)
+    // left opponent action      - 9 indices  (4 makes, 4 make alones, pass)
+    // ally action               - 9 indices  (4 makes, 4 make alones, pass)
+    // right opponent action     - 9 indices  (4 makes, 4 make alones, pass)
+
+    // Play (4)
+    // trump suit                - 4 indices  (4 suits)
+
+    // Trick (121 * 4 = 484)
+    // lead player               - 4 indices (self/left/ally/right)
+    // lead suit                 - 5 indices (4 suits, 1 "not set")
+    // first card                - 28 indices (1 for each card)
+    // second card               - 28 indices (1 for each card)
+    // third card                - 28 indices (1 for each card)
+    // fourth card               - 28 indices (1 for each card)
+
+    let mut inputs: [f64; INPUT_NODES] = [0.0; INPUT_NODES];
+    let mut rng = rand::thread_rng();
+
+    for i in 0..INPUT_NODES { 
+        inputs[i] = rng.gen::<f64>();
+    } 
 
     let nn1 = NeuralNetwork::new();
     let nn2 = NeuralNetwork::new();
