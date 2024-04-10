@@ -1,19 +1,12 @@
 use rand::prelude::*;
-use std::thread;
 use std::mem;
-use lazy_static::lazy_static;
+use std::thread;
 
-lazy_static! {
-    static ref INITIAL_INDICES: [usize; OUTPUT_NODES] = {
-        let mut indices = [0; OUTPUT_NODES];
-        for i in 0..OUTPUT_NODES {
-            indices[i] = i;
-        }
-        indices
-    };
-}
+mod neural_network;
+use neural_network::*;
 
 const ACTION_COUNT: isize = 60;
+
 enum Action {
     PlaySpadeNine,
     PlaySpadeTen,
@@ -77,115 +70,6 @@ enum Action {
     PassSuit,
 }
 
-const INPUT_NODES: usize = 554;
-const OUTPUT_NODES: usize = 60;
-const HIDDEN_NODES: usize = (INPUT_NODES + OUTPUT_NODES) * 2 / 3;
-
-struct NeuralNetwork {
-    weights_input_hidden: [[f64; HIDDEN_NODES]; INPUT_NODES],
-    weights_hidden_output: [[f64; OUTPUT_NODES]; HIDDEN_NODES],
-}
-
-impl NeuralNetwork {
-    fn new() -> Self {
-        let weights_input_hidden = [[0.0; HIDDEN_NODES]; INPUT_NODES];
-        let weights_hidden_output = [[0.0; OUTPUT_NODES]; HIDDEN_NODES];
-
-        NeuralNetwork {
-            weights_input_hidden,
-            weights_hidden_output,
-        }
-    }
-
-    fn init(&mut self) {
-        let mut rng = rand::thread_rng();
-        for i in 0..INPUT_NODES {
-            for j in 0..HIDDEN_NODES {
-                self.weights_input_hidden[i][j] = rng.gen_range(-0.5..0.5);
-            }
-        }
-        for i in 0..HIDDEN_NODES {
-            for j in 0..OUTPUT_NODES {
-                self.weights_hidden_output[i][j] = rng.gen_range(-0.5..0.5);
-            }
-        }
-    }
-
-    fn sigmoid(x: f64) -> f64 {
-        1.0 / (1.0 + (-x).exp())
-    }
-
-    fn mutate(&mut self, rate: f64, magnitude: f64) {
-        let mut rng = rand::thread_rng();
-        for i in 0..INPUT_NODES {
-            for j in 0..HIDDEN_NODES {
-                if rng.gen::<f64>() < rate {
-                    self.weights_input_hidden[i][j] += rng.gen_range(-magnitude..magnitude);
-                }
-            }
-        }
-        for i in 0..HIDDEN_NODES {
-            for j in 0..OUTPUT_NODES {
-                if rng.gen::<f64>() < rate {
-                    self.weights_hidden_output[i][j] += rng.gen_range(-magnitude..magnitude);
-                }
-            }
-        }
-    }
-
-    fn crossover(&self, partner: &NeuralNetwork) -> NeuralNetwork {
-        let mut rng = rand::thread_rng();
-        let mut child = NeuralNetwork::new();
-
-        for i in 0..INPUT_NODES {
-            for j in 0..HIDDEN_NODES {
-                if rng.gen::<f64>() < 0.5 {
-                    child.weights_input_hidden[i][j] = self.weights_input_hidden[i][j];
-                } else {
-                    child.weights_input_hidden[i][j] = partner.weights_input_hidden[i][j];
-                }
-            }
-        }
-
-        for i in 0..HIDDEN_NODES {
-            for j in 0..OUTPUT_NODES {
-                if rng.gen::<f64>() < 0.5 {
-                    child.weights_hidden_output[i][j] = self.weights_hidden_output[i][j];
-                } else {
-                    child.weights_hidden_output[i][j] = partner.weights_hidden_output[i][j];
-                }
-            }
-        }
-
-        child
-    }
-
-    fn query(&self, inputs: &[f64; INPUT_NODES]) -> [usize; OUTPUT_NODES] {
-        let mut hidden_outputs = [0.0; HIDDEN_NODES];
-        let mut final_outputs = [0.0; OUTPUT_NODES];
-
-        for i in 0..HIDDEN_NODES {
-            let mut sum = 0.0;
-            for j in 0..INPUT_NODES {
-                sum += inputs[j] * self.weights_input_hidden[j][i];
-            }
-            hidden_outputs[i] = NeuralNetwork::sigmoid(sum);
-        }
-
-        for i in 0..OUTPUT_NODES {
-            let mut sum = 0.0;
-            for j in 0..HIDDEN_NODES {
-                sum += hidden_outputs[j] * self.weights_hidden_output[j][i];
-            }
-            final_outputs[i] = NeuralNetwork::sigmoid(sum);
-        }
-
-        let mut indices: [usize; OUTPUT_NODES] = INITIAL_INDICES.clone();
-        indices.sort_by(|&a, &b| final_outputs[b].partial_cmp(&final_outputs[a]).unwrap());
-        indices
-    }
-}
-
 fn main() {
     // Game (20)
     // self team score           - 10 indices (0-9 points)
@@ -242,10 +126,8 @@ fn main() {
             nn1.init();
             let mut nn2 = NeuralNetwork::new();
             nn2.init();
-            let nn3 = NeuralNetwork::new();
 
-            let mut child = nn1.crossover(&nn2);
-            child.mutate(0.1, 0.1);
+            let child = nn1.crossover(&nn2, 0.01, 0.1);
 
             let result1 = nn1.query(&inputs);
             let result2 = nn2.query(&inputs);
