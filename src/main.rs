@@ -1,6 +1,17 @@
 use rand::prelude::*;
 use std::thread;
 use std::mem;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref INITIAL_INDICES: [usize; OUTPUT_NODES] = {
+        let mut indices = [0; OUTPUT_NODES];
+        for i in 0..OUTPUT_NODES {
+            indices[i] = i;
+        }
+        indices
+    };
+}
 
 const ACTION_COUNT: isize = 60;
 enum Action {
@@ -148,7 +159,7 @@ impl NeuralNetwork {
         child
     }
 
-    fn query(&self, inputs: &[f64; INPUT_NODES]) -> [f64; OUTPUT_NODES] {
+    fn query(&self, inputs: &[f64; INPUT_NODES]) -> [usize; OUTPUT_NODES] {
         let mut hidden_outputs = [0.0; HIDDEN_NODES];
         let mut final_outputs = [0.0; OUTPUT_NODES];
 
@@ -168,7 +179,9 @@ impl NeuralNetwork {
             final_outputs[i] = NeuralNetwork::sigmoid(sum);
         }
 
-        final_outputs
+        let mut indices: [usize; OUTPUT_NODES] = INITIAL_INDICES.clone();
+        indices.sort_by(|&a, &b| final_outputs[b].partial_cmp(&final_outputs[a]).unwrap());
+        indices
     }
 }
 
