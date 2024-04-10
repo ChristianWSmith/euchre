@@ -1,4 +1,6 @@
 use rand::prelude::*;
+use std::thread;
+use std::mem;
 
 const ACTION_COUNT: isize = 60;
 enum Action {
@@ -65,7 +67,7 @@ enum Action {
 }
 
 const INPUT_NODES: usize = 626;
-const HIDDEN_NODES: usize = 252;
+const HIDDEN_NODES: usize = 1252;
 const OUTPUT_NODES: usize = 60;
 
 struct NeuralNetwork {
@@ -78,7 +80,7 @@ impl NeuralNetwork {
         let mut rng = rand::thread_rng();
         let mut weights_input_hidden = [[0.0; HIDDEN_NODES]; INPUT_NODES];
         let mut weights_hidden_output = [[0.0; OUTPUT_NODES]; HIDDEN_NODES];
-        
+
         for i in 0..INPUT_NODES {
             for j in 0..HIDDEN_NODES {
                 weights_input_hidden[i][j] = rng.gen_range(-0.5..0.5);
@@ -90,7 +92,7 @@ impl NeuralNetwork {
                 weights_hidden_output[i][j] = rng.gen_range(-0.5..0.5);
             }
         }
-        
+
         NeuralNetwork {
             weights_input_hidden,
             weights_hidden_output,
@@ -157,7 +159,7 @@ impl NeuralNetwork {
             }
             hidden_outputs[i] = NeuralNetwork::sigmoid(sum);
         }
-        
+
         for i in 0..OUTPUT_NODES {
             let mut sum = 0.0;
             for j in 0..HIDDEN_NODES {
@@ -205,22 +207,36 @@ fn main() {
     // third card                - 28 indices (1 for each card)
     // fourth card               - 28 indices (1 for each card)
 
-    let mut inputs: [f64; INPUT_NODES] = [0.0; INPUT_NODES];
-    let mut rng = rand::thread_rng();
+    // Set custom stack size (in bytes)
+    const STACK_SIZE: usize = 8 * 1024 * 1024 * 1024; // 8GB
 
-    for i in 0..INPUT_NODES { 
-        inputs[i] = rng.gen::<f64>();
-    } 
+    // Spawn a thread with custom stack size
+    let handle = thread::Builder::new()
+        .stack_size(STACK_SIZE)
+        .spawn(|| {
+            let size = mem::size_of::<NeuralNetwork>();
+            println!("Size of NeuralNetwork struct: {} bytes", size);
+            let mut inputs: [f64; INPUT_NODES] = [0.0; INPUT_NODES];
+            let mut rng = rand::thread_rng();
 
-    let nn1 = NeuralNetwork::new();
-    let nn2 = NeuralNetwork::new();
+            for i in 0..INPUT_NODES {
+                inputs[i] = rng.gen::<f64>();
+            }
 
-    let mut child = nn1.crossover(&nn2);
-    child.mutate(0.1, 0.1);
+            let nn1 = NeuralNetwork::new();
+            let nn2 = NeuralNetwork::new();
+            let nn3 = NeuralNetwork::new();
 
-    let result1 = nn1.query(&inputs);
-    let result2 = nn2.query(&inputs);
-    let result3 = child.query(&inputs);
-    println!("{:?}\n{:?}\n{:?}", result1, result2, result3);
+            let mut child = nn1.crossover(&nn2);
+            child.mutate(0.1, 0.1);
+
+            let result1 = nn1.query(&inputs);
+            let result2 = nn2.query(&inputs);
+            let result3 = child.query(&inputs);
+            println!("{:?}\n{:?}\n{:?}", result1, result2, result3);
+        })
+        .unwrap(); // Handle the Result to check for errors
+
+    // Wait for the thread to finish
+    handle.join().unwrap();
 }
-
