@@ -66,8 +66,8 @@ enum Action {
     PassSuit,
 }
 
-const INPUT_NODES: usize = 626;
-const HIDDEN_NODES: usize = 1252;
+const INPUT_NODES: usize = 554;
+const HIDDEN_NODES: usize = 1108;
 const OUTPUT_NODES: usize = 60;
 
 struct NeuralNetwork {
@@ -177,12 +177,12 @@ fn main() {
     // self team score           - 10 indices (0-9 points)
     // opponent team score       - 10 indices (0-9 points)
 
-    // Round (70)
+    // Round (62)
     // dealer                    - 4 indices  (1 for each player, left/ally/right)
     // self team trick count     - 5 indices  (0-4 tricks)
     // opponent team trick count - 5 indices  (0-4 tricks)
-    // upcard                    - 28 indices (1 for each card)
-    // hand                      - 28 indices (1 for each card)
+    // upcard                    - 24 indices (1 for each card)
+    // hand                      - 24 indices (1 for each card)
 
     // Bid Upcard (12)
     // self action               - 3 indices  (make, make alone, pass)
@@ -199,23 +199,23 @@ fn main() {
     // Play (4)
     // trump suit                - 4 indices  (4 suits)
 
-    // Trick (121 * 4 = 484)
+    // Trick (105 * 4 = 420)
     // lead player               - 4 indices (self/left/ally/right)
     // lead suit                 - 5 indices (4 suits, 1 "not set")
-    // first card                - 28 indices (1 for each card)
-    // second card               - 28 indices (1 for each card)
-    // third card                - 28 indices (1 for each card)
-    // fourth card               - 28 indices (1 for each card)
+    // first card                - 24 indices (1 for each card)
+    // second card               - 24 indices (1 for each card)
+    // third card                - 24 indices (1 for each card)
+    // fourth card               - 24 indices (1 for each card)
 
-    // Set custom stack size (in bytes)
-    const STACK_SIZE: usize = 8 * 1024 * 1024 * 1024; // 8GB
+    // Total (554)
+
+    const NUM_NETWORKS: usize = 4;
+    const STACK_SIZE: usize = mem::size_of::<NeuralNetwork>() * NUM_NETWORKS * 2;
 
     // Spawn a thread with custom stack size
     let handle = thread::Builder::new()
         .stack_size(STACK_SIZE)
         .spawn(|| {
-            let size = mem::size_of::<NeuralNetwork>();
-            println!("Size of NeuralNetwork struct: {} bytes", size);
             let mut inputs: [f64; INPUT_NODES] = [0.0; INPUT_NODES];
             let mut rng = rand::thread_rng();
 
