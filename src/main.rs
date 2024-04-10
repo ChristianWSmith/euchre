@@ -88,25 +88,26 @@ struct NeuralNetwork {
 
 impl NeuralNetwork {
     fn new() -> Self {
-        let mut rng = rand::thread_rng();
-        let mut weights_input_hidden = [[0.0; HIDDEN_NODES]; INPUT_NODES];
-        let mut weights_hidden_output = [[0.0; OUTPUT_NODES]; HIDDEN_NODES];
-
-        for i in 0..INPUT_NODES {
-            for j in 0..HIDDEN_NODES {
-                weights_input_hidden[i][j] = rng.gen_range(-0.5..0.5);
-            }
-        }
-
-        for i in 0..HIDDEN_NODES {
-            for j in 0..OUTPUT_NODES {
-                weights_hidden_output[i][j] = rng.gen_range(-0.5..0.5);
-            }
-        }
+        let weights_input_hidden = [[0.0; HIDDEN_NODES]; INPUT_NODES];
+        let weights_hidden_output = [[0.0; OUTPUT_NODES]; HIDDEN_NODES];
 
         NeuralNetwork {
             weights_input_hidden,
             weights_hidden_output,
+        }
+    }
+
+    fn init(&mut self) {
+        let mut rng = rand::thread_rng();
+        for i in 0..INPUT_NODES {
+            for j in 0..HIDDEN_NODES {
+                self.weights_input_hidden[i][j] = rng.gen_range(-0.5..0.5);
+            }
+        }
+        for i in 0..HIDDEN_NODES {
+            for j in 0..OUTPUT_NODES {
+                self.weights_hidden_output[i][j] = rng.gen_range(-0.5..0.5);
+            }
         }
     }
 
@@ -237,8 +238,10 @@ fn main() {
                 inputs[i] = rng.gen::<f64>();
             }
 
-            let nn1 = NeuralNetwork::new();
-            let nn2 = NeuralNetwork::new();
+            let mut nn1 = NeuralNetwork::new();
+            nn1.init();
+            let mut nn2 = NeuralNetwork::new();
+            nn2.init();
             let nn3 = NeuralNetwork::new();
 
             let mut child = nn1.crossover(&nn2);
