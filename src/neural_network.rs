@@ -1,5 +1,12 @@
 use lazy_static::lazy_static;
 use rand::prelude::*;
+use strum::EnumCount;
+
+use crate::euchre::enums::Action;
+
+pub const INPUT_NODES: usize = 554;
+pub const OUTPUT_NODES: usize = Action::COUNT;
+const HIDDEN_NODES: usize = (INPUT_NODES + OUTPUT_NODES) * 2 / 3;
 
 lazy_static! {
     static ref INITIAL_INDICES: [usize; OUTPUT_NODES] = {
@@ -10,10 +17,6 @@ lazy_static! {
         indices
     };
 }
-
-pub const INPUT_NODES: usize = 554;
-pub const OUTPUT_NODES: usize = 60;
-const HIDDEN_NODES: usize = (INPUT_NODES + OUTPUT_NODES) * 2 / 3;
 
 pub struct NeuralNetwork {
     weights_input_hidden: [[f64; HIDDEN_NODES]; INPUT_NODES],

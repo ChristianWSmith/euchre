@@ -2,73 +2,10 @@ use rand::prelude::*;
 use std::mem;
 use std::thread;
 
+mod euchre;
+
 mod neural_network;
 use neural_network::*;
-
-const ACTION_COUNT: isize = 60;
-
-enum Action {
-    PlaySpadeNine,
-    PlaySpadeTen,
-    PlaySpadeJack,
-    PlaySpadeQueen,
-    PlaySpadeKing,
-    PlaySpadeAce,
-    PlayHeartNine,
-    PlayHeartTen,
-    PlayHeartJack,
-    PlayHeartQueen,
-    PlayHeartKing,
-    PlayHeartAce,
-    PlayDiamondNine,
-    PlayDiamondTen,
-    PlayDiamondJack,
-    PlayDiamondQueen,
-    PlayDiamondKing,
-    PlayDiamondAce,
-    PlayClubNine,
-    PlayClubTen,
-    PlayClubJack,
-    PlayClubQueen,
-    PlayClubKing,
-    PlayClubAce,
-    DiscardSpadeNine,
-    DiscardSpadeTen,
-    DiscardSpadeJack,
-    DiscardSpadeQueen,
-    DiscardSpadeKing,
-    DiscardSpadeAce,
-    DiscardHeartNine,
-    DiscardHeartTen,
-    DiscardHeartJack,
-    DiscardHeartQueen,
-    DiscardHeartKing,
-    DiscardHeartAce,
-    DiscardDiamondNine,
-    DiscardDiamondTen,
-    DiscardDiamondJack,
-    DiscardDiamondQueen,
-    DiscardDiamondKing,
-    DiscardDiamondAce,
-    DiscardClubNine,
-    DiscardClubTen,
-    DiscardClubJack,
-    DiscardClubQueen,
-    DiscardClubKing,
-    DiscardClubAce,
-    MakeUpcard,
-    MakeUpcardAlone,
-    PassUpcard,
-    MakeSuitSpade,
-    MakeSuitHeart,
-    MakeSuitDiamond,
-    MakeSuitClub,
-    MakeSuitSpadeAlone,
-    MakeSuitHeartAlone,
-    MakeSuitDiamondAlone,
-    MakeSuitClubAlone,
-    PassSuit,
-}
 
 fn main() {
     // Game (20)
