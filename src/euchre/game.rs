@@ -1,5 +1,5 @@
 use super::{constants::*, enums::*, game_helpers::*, neural_network_helpers::*, types::*};
-use crate::{NeuralNetwork, NeuralNetworkInput};
+use crate::{AvailableActions, NeuralNetwork, NeuralNetworkInput};
 use rand::Rng;
 use strum::EnumCount;
 
@@ -136,7 +136,7 @@ fn run_round(
     set_upcard(position_2_input, &upcard);
     set_upcard(position_3_input, &upcard);
     let (
-        mut makingTeam,
+        mut making_team,
         mut skip_dealer,
         mut skip_position_1,
         mut skip_position_2,
@@ -151,12 +151,15 @@ fn run_round(
         position_2_input,
         position_3_input,
     );
-    if makingTeam.is_some() {
+    let mut trump_suit: Option<Suit> = None;
+    if making_team.is_some() {
+        trump_suit = Some(upcard.suit);
         dealer_hand[5] = Some(upcard);
         run_discard(dealer_player, dealer_input, &dealer_hand);
     } else {
         (
-            makingTeam,
+            making_team,
+            trump_suit,
             skip_dealer,
             skip_position_1,
             skip_position_2,
@@ -170,10 +173,10 @@ fn run_round(
             position_1_input,
             position_2_input,
             position_3_input,
-            &upcard,
+            &upcard.suit,
         );
     }
-    if makingTeam.is_none() {
+    if making_team.is_none() {
         return (0, 0);
     }
     let mut dealer_team_tricks: u8 = 0;
@@ -184,7 +187,7 @@ fn run_round(
     }
 
     match (
-        makingTeam,
+        making_team,
         dealer_team_tricks,
         other_team_tricks,
         skip_dealer,
@@ -388,9 +391,30 @@ fn run_bid_suit(
     position_1_input: &mut NeuralNetworkInput,
     position_2_input: &mut NeuralNetworkInput,
     position_3_input: &mut NeuralNetworkInput,
-    upcard: &Card,
-) -> (Option<RelativeTeam>, bool, bool, bool, bool) {
-    (Some(RelativeTeam::Dealer), false, false, false, false)
+    upcard_suit: &Suit,
+) -> (Option<RelativeTeam>, Option<Suit>, bool, bool, bool, bool) {
+    (
+        Some(RelativeTeam::Dealer),
+        Some(Suit::Spade),
+        false,
+        false,
+        false,
+        false,
+    )
+}
+
+fn get_bid_suit_action(
+    myself: &NeuralNetwork,
+    left: &NeuralNetwork,
+    ally: &NeuralNetwork,
+    right: &NeuralNetwork,
+    myself_input: &mut NeuralNetworkInput,
+    left_input: &mut NeuralNetworkInput,
+    ally_input: &mut NeuralNetworkInput,
+    right_input: &mut NeuralNetworkInput,
+    available_actions: &AvailableActions,
+) -> Option<(bool, Suit, bool)> {
+    None
 }
 
 // TODO: unstub
