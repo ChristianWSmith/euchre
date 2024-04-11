@@ -156,7 +156,17 @@ fn run_round(
             skip_position_1,
             skip_position_2,
             skip_position_3,
-        ) = run_bid_suit();
+        ) = run_bid_suit(
+            dealer_player,
+            position_1_player,
+            position_2_player,
+            position_3_player,
+            dealer_input,
+            position_1_input,
+            position_2_input,
+            position_3_input,
+            &upcard,
+        );
     }
     if !made {
         return (0, 0);
@@ -164,7 +174,6 @@ fn run_round(
     (0, 0)
 }
 
-// TODO: unstub
 fn run_bid_upcard(
     dealer_player: &NeuralNetwork,
     position_1_player: &NeuralNetwork,
@@ -322,7 +331,6 @@ fn get_bid_upcard_action(
     }
 }
 
-// TODO: unstub
 fn run_discard(player: &NeuralNetwork, input: &mut NeuralNetworkInput, hand: &[Option<Card>; 6]) {
     discard(
         input,
@@ -331,7 +339,17 @@ fn run_discard(player: &NeuralNetwork, input: &mut NeuralNetworkInput, hand: &[O
 }
 
 // TODO: unstub
-fn run_bid_suit() -> (bool, bool, bool, bool, bool) {
+fn run_bid_suit(
+    dealer_player: &NeuralNetwork,
+    position_1_player: &NeuralNetwork,
+    position_2_player: &NeuralNetwork,
+    position_3_player: &NeuralNetwork,
+    dealer_input: &mut NeuralNetworkInput,
+    position_1_input: &mut NeuralNetworkInput,
+    position_2_input: &mut NeuralNetworkInput,
+    position_3_input: &mut NeuralNetworkInput,
+    upcard: &Card,
+) -> (bool, bool, bool, bool, bool) {
     (false, false, false, false, false)
 }
 
