@@ -199,16 +199,17 @@ fn run_round(
         | (Some(RelativeTeam::Dealer), 5, _, _, _, true, _) => return (4, 0),
         (Some(RelativeTeam::Other), _, 5, _, true, _, _)
         | (Some(RelativeTeam::Other), _, 5, _, _, _, true) => return (0, 4),
-        (Some(RelativeTeam::Dealer), 5, _, false, _, _, _)
-        | (Some(RelativeTeam::Dealer), 5, _, _, _, false, _)
+
+        (Some(RelativeTeam::Dealer), 5, _, false, _, false, _)
         | (Some(RelativeTeam::Other), _, 2, _, _, _, _)
         | (Some(RelativeTeam::Other), _, 1, _, _, _, _)
         | (Some(RelativeTeam::Other), _, 0, _, _, _, _) => return (2, 0),
-        (Some(RelativeTeam::Dealer), 2, _, _, _, _, _)
+
+        (Some(RelativeTeam::Other), _, 5, _, false, _, false)
+        | (Some(RelativeTeam::Dealer), 2, _, _, _, _, _)
         | (Some(RelativeTeam::Dealer), 1, _, _, _, _, _)
-        | (Some(RelativeTeam::Dealer), 0, _, _, _, _, _)
-        | (Some(RelativeTeam::Other), _, 5, _, false, _, _)
-        | (Some(RelativeTeam::Other), _, 5, _, _, _, false) => return (0, 2),
+        | (Some(RelativeTeam::Dealer), 0, _, _, _, _, _) => return (0, 2),
+
         (Some(RelativeTeam::Dealer), 4, _, _, _, _, _)
         | (Some(RelativeTeam::Dealer), 3, _, _, _, _, _) => return (1, 0),
         (Some(RelativeTeam::Other), _, 4, _, _, _, _)
