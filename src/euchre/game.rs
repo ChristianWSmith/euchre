@@ -367,7 +367,6 @@ fn run_discard(player: &NeuralNetwork, input: &mut NeuralNetworkInput, hand: &[O
     );
 }
 
-// TODO: unstub
 fn run_bid_suit(
     dealer_player: &NeuralNetwork,
     position_1_player: &NeuralNetwork,
@@ -388,8 +387,86 @@ fn run_bid_suit(
         dealer_input,
         &available_actions,
     ) {
-        Some((true, true)) => return (Some(RelativeTeam::Other), false, false, false, true),
-        Some((true, false)) => return (Some(RelativeTeam::Other), false, false, false, false),
+        Some((true, Suit::Spade, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Spade),
+                false,
+                false,
+                false,
+                true,
+            )
+        }
+        Some((true, Suit::Heart, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Heart),
+                false,
+                false,
+                false,
+                true,
+            )
+        }
+        Some((true, Suit::Diamond, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Diamond),
+                false,
+                false,
+                false,
+                true,
+            )
+        }
+        Some((true, Suit::Club, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Club),
+                false,
+                false,
+                false,
+                true,
+            )
+        }
+        Some((true, Suit::Spade, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Spade),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Diamond, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Diamond),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Heart, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Heart),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Club, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Club),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
         None => {}
         _ => panic!("invalid bid suit action result"),
     }
@@ -401,8 +478,86 @@ fn run_bid_suit(
         position_1_input,
         &available_actions,
     ) {
-        Some((true, true)) => return (Some(RelativeTeam::Dealer), true, false, false, false),
-        Some((true, false)) => return (Some(RelativeTeam::Dealer), false, false, false, false),
+        Some((true, Suit::Spade, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Spade),
+                true,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Heart, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Heart),
+                true,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Diamond, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Diamond),
+                true,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Club, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Club),
+                true,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Spade, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Spade),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Diamond, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Diamond),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Heart, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Heart),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Club, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Club),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
         None => {}
         _ => panic!("invalid bid suit action result"),
     }
@@ -414,8 +569,86 @@ fn run_bid_suit(
         position_2_input,
         &available_actions,
     ) {
-        Some((true, true)) => return (Some(RelativeTeam::Other), false, true, false, false),
-        Some((true, false)) => return (Some(RelativeTeam::Other), false, false, false, false),
+        Some((true, Suit::Spade, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Spade),
+                false,
+                true,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Heart, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Heart),
+                false,
+                true,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Diamond, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Diamond),
+                false,
+                true,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Club, true)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Club),
+                false,
+                true,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Spade, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Spade),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Diamond, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Diamond),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Heart, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Heart),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Club, false)) => {
+            return (
+                Some(RelativeTeam::Other),
+                Some(Suit::Club),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
         None => {}
         _ => panic!("invalid bid suit action result"),
     }
@@ -427,8 +660,86 @@ fn run_bid_suit(
         position_3_input,
         &available_actions,
     ) {
-        Some((true, true)) => return (Some(RelativeTeam::Dealer), false, false, true, false),
-        Some((true, false)) => return (Some(RelativeTeam::Dealer), false, false, false, false),
+        Some((true, Suit::Spade, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Spade),
+                false,
+                false,
+                true,
+                false,
+            )
+        }
+        Some((true, Suit::Heart, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Heart),
+                false,
+                false,
+                true,
+                false,
+            )
+        }
+        Some((true, Suit::Diamond, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Diamond),
+                false,
+                false,
+                true,
+                false,
+            )
+        }
+        Some((true, Suit::Club, true)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Club),
+                false,
+                false,
+                true,
+                false,
+            )
+        }
+        Some((true, Suit::Spade, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Spade),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Diamond, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Diamond),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Heart, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Heart),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
+        Some((true, Suit::Club, false)) => {
+            return (
+                Some(RelativeTeam::Dealer),
+                Some(Suit::Club),
+                false,
+                false,
+                false,
+                false,
+            )
+        }
         None => {}
         _ => panic!("invalid bid suit action result"),
     }
