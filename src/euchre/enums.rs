@@ -24,7 +24,7 @@ pub enum Team {
     EastWest,
 }
 
-#[derive(EnumCountMacro, Debug, Copy, Clone)]
+#[derive(EnumCountMacro, Debug, Copy, Clone, PartialEq)]
 #[repr(usize)]
 pub enum Suit {
     Spade,
@@ -40,7 +40,7 @@ impl Suit {
     }
 }
 
-#[derive(EnumCountMacro, Debug, Copy, Clone)]
+#[derive(EnumCountMacro, Debug, Copy, Clone, PartialEq)]
 #[repr(usize)]
 pub enum Rank {
     Nine,

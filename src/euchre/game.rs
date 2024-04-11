@@ -1,49 +1,7 @@
+use super::{constants::*, enums::*, game_helpers::*, neural_network_helpers::*, types::*};
 use crate::{NeuralNetwork, NeuralNetworkInput};
 use rand::Rng;
 use strum::EnumCount;
-
-use super::{
-    enums::{Position, Rank, RelativePosition, StateIndex, Suit, Team},
-    game_helpers::{deal, left_player},
-    neural_network_helpers::{set_dealer, set_score},
-};
-
-use lazy_static::lazy_static;
-
-lazy_static! {
-    pub static ref DECK: [Card; Rank::COUNT * Suit::COUNT] = {
-        let mut deck = [Card {
-            suit: Suit::Spade,
-            rank: Rank::Nine,
-        }; Rank::COUNT * Suit::COUNT];
-        let mut k = 0;
-        for i in 0..Suit::COUNT {
-            for j in 0..Rank::COUNT {
-                deck[k] = Card {
-                    suit: Suit::from_usize(i),
-                    rank: Rank::from_usize(j),
-                };
-                k += 1
-            }
-        }
-        deck
-    };
-    static ref POSITIONS: [Position; 4] = {
-        let positions = [
-            Position::North,
-            Position::East,
-            Position::South,
-            Position::West,
-        ];
-        positions
-    };
-}
-
-#[derive(Copy, Clone)]
-pub struct Card {
-    pub suit: Suit,
-    pub rank: Rank,
-}
 
 pub fn play_euchre(
     north_player: &NeuralNetwork,
@@ -56,18 +14,18 @@ pub fn play_euchre(
     let mut north_south_score: u8 = 0;
     let mut east_west_score: u8 = 0;
 
-    let north_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
-    let east_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
-    let south_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
-    let west_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
-
     let mut dealer: &Position = &POSITIONS[rng.gen_range(0..POSITIONS.len())];
 
     while north_south_score < 10 && east_west_score < 10 {
-        set_score(north_input, north_south_score, east_west_score);
-        set_score(east_input, east_west_score, north_south_score);
-        set_score(south_input, north_south_score, east_west_score);
-        set_score(west_input, east_west_score, north_south_score);
+        let north_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
+        let east_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
+        let south_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
+        let west_input: &mut NeuralNetworkInput = &mut [0.0; StateIndex::COUNT];
+
+        set_score(north_input, &north_south_score, &east_west_score);
+        set_score(east_input, &east_west_score, &north_south_score);
+        set_score(south_input, &north_south_score, &east_west_score);
+        set_score(west_input, &east_west_score, &north_south_score);
 
         let (dealer_score_delta, other_score_delta) = match dealer {
             &Position::North => {
@@ -169,11 +127,190 @@ fn run_round(
     let mut position_1_hand = hands[1];
     let mut position_2_hand = hands[2];
     let mut position_3_hand = hands[3];
-    // TODO: update inputs
+    set_hand(dealer_input, &dealer_hand);
+    set_hand(position_1_input, &position_1_hand);
+    set_hand(position_2_input, &position_2_hand);
+    set_hand(position_3_input, &position_3_hand);
+    set_upcard(dealer_input, &upcard);
+    set_upcard(position_1_input, &upcard);
+    set_upcard(position_2_input, &upcard);
+    set_upcard(position_3_input, &upcard);
+    let (made, alone) = run_bid_upcard(
+        dealer_player,
+        position_1_player,
+        position_2_player,
+        position_3_player,
+        dealer_input,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+    );
     (0, 0)
 }
 
-fn run_bid_upcard() {}
+// TODO: unstub
+fn run_bid_upcard(
+    dealer_player: &NeuralNetwork,
+    position_1_player: &NeuralNetwork,
+    position_2_player: &NeuralNetwork,
+    position_3_player: &NeuralNetwork,
+    dealer_input: &mut NeuralNetworkInput,
+    position_1_input: &mut NeuralNetworkInput,
+    position_2_input: &mut NeuralNetworkInput,
+    position_3_input: &mut NeuralNetworkInput,
+) -> (bool, bool) {
+    match get_bid_upcard_action(
+        position_1_player,
+        position_2_player,
+        position_3_player,
+        dealer_player,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+        dealer_input,
+    ) {
+        Some((true, true)) => return (true, true),
+        Some((true, false)) => return (true, false),
+        None => {}
+        _ => panic!("invalid bid upcard action result"),
+    }
+    match get_bid_upcard_action(
+        position_2_player,
+        position_3_player,
+        dealer_player,
+        position_1_player,
+        position_2_input,
+        position_3_input,
+        dealer_input,
+        position_1_input,
+    ) {
+        Some((true, true)) => return (true, true),
+        Some((true, false)) => return (true, false),
+        None => {}
+        _ => panic!("invalid bid upcard action result"),
+    }
+    match get_bid_upcard_action(
+        position_3_player,
+        dealer_player,
+        position_1_player,
+        position_2_player,
+        position_3_input,
+        dealer_input,
+        position_1_input,
+        position_2_input,
+    ) {
+        Some((true, true)) => return (true, true),
+        Some((true, false)) => return (true, false),
+        None => {}
+        _ => panic!("invalid bid upcard action result"),
+    }
+    match get_bid_upcard_action(
+        dealer_player,
+        position_1_player,
+        position_2_player,
+        position_3_player,
+        dealer_input,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+    ) {
+        Some((true, true)) => return (true, true),
+        Some((true, false)) => return (true, false),
+        None => {}
+        _ => panic!("invalid bid upcard action result"),
+    }
+    (false, false)
+}
+
+fn get_bid_upcard_action(
+    myself: &NeuralNetwork,
+    left: &NeuralNetwork,
+    ally: &NeuralNetwork,
+    right: &NeuralNetwork,
+    myself_input: &mut NeuralNetworkInput,
+    left_input: &mut NeuralNetworkInput,
+    ally_input: &mut NeuralNetworkInput,
+    right_input: &mut NeuralNetworkInput,
+) -> Option<(bool, bool)> {
+    match myself.get_action(&myself_input, &BID_UPCARD_AVAILABLE_ACTIONS) {
+        ActionIndex::MakeUpcard => {
+            set_bid_upcard(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeUpcard,
+            );
+            set_bid_upcard(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeUpcard,
+            );
+            set_bid_upcard(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeUpcard,
+            );
+            set_bid_upcard(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeUpcard,
+            );
+            return Some((true, false));
+        }
+        ActionIndex::MakeUpcardAlone => {
+            set_bid_upcard(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeUpcardAlone,
+            );
+            set_bid_upcard(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeUpcardAlone,
+            );
+            set_bid_upcard(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeUpcardAlone,
+            );
+            set_bid_upcard(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeUpcardAlone,
+            );
+            return Some((true, true));
+        }
+        ActionIndex::PassUpcard => {
+            set_bid_upcard(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::PassUpcard,
+            );
+            set_bid_upcard(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::PassUpcard,
+            );
+            set_bid_upcard(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::PassUpcard,
+            );
+            set_bid_upcard(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::PassUpcard,
+            );
+            return None;
+        }
+        _ => panic!("invalid bid upcard action"),
+    }
+}
+
+// TODO: unstub
 fn run_discard() {}
+
+// TODO: unstub
 fn run_bid_suit() {}
+
+// TODO: unstub
 fn run_trick() {}
