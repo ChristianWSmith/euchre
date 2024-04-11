@@ -93,6 +93,128 @@ pub fn get_discard_available_actions(hand: &[Option<Card>; 6]) -> AvailableActio
     available_actions
 }
 
+pub fn set_bid_suit(
+    input: &mut NeuralNetworkInput,
+    relative_position: &RelativePosition,
+    action: &ActionIndex,
+) {
+    match (relative_position, action) {
+        // Myself
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitSpade) => {
+            input[StateIndex::BidSuitMyselfMakeSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitSpadeAlone) => {
+            input[StateIndex::BidSuitMyselfMakeAloneSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitHeart) => {
+            input[StateIndex::BidSuitMyselfMakeHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitHeartAlone) => {
+            input[StateIndex::BidSuitMyselfMakeAloneHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitDiamond) => {
+            input[StateIndex::BidSuitMyselfMakeDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitDiamondAlone) => {
+            input[StateIndex::BidSuitMyselfMakeAloneDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitClub) => {
+            input[StateIndex::BidSuitMyselfMakeClub as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::MakeSuitClubAlone) => {
+            input[StateIndex::BidSuitMyselfMakeAloneClub as usize] = 1.0;
+        }
+        (&RelativePosition::Myself, &ActionIndex::PassSuit) => {
+            input[StateIndex::BidSuitMyselfPass as usize] = 1.0;
+        }
+        // Left
+        (&RelativePosition::Left, &ActionIndex::MakeSuitSpade) => {
+            input[StateIndex::BidSuitLeftMakeSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::MakeSuitSpadeAlone) => {
+            input[StateIndex::BidSuitLeftMakeAloneSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::MakeSuitHeart) => {
+            input[StateIndex::BidSuitLeftMakeHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::MakeSuitHeartAlone) => {
+            input[StateIndex::BidSuitLeftMakeAloneHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::MakeSuitDiamond) => {
+            input[StateIndex::BidSuitLeftMakeDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::MakeSuitDiamondAlone) => {
+            input[StateIndex::BidSuitLeftMakeAloneDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::MakeSuitClub) => {
+            input[StateIndex::BidSuitLeftMakeClub as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::MakeSuitClubAlone) => {
+            input[StateIndex::BidSuitLeftMakeAloneClub as usize] = 1.0;
+        }
+        (&RelativePosition::Left, &ActionIndex::PassSuit) => {
+            input[StateIndex::BidSuitLeftPass as usize] = 1.0;
+        }
+        // Ally
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitSpade) => {
+            input[StateIndex::BidSuitAllyMakeSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitSpadeAlone) => {
+            input[StateIndex::BidSuitAllyMakeAloneSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitHeart) => {
+            input[StateIndex::BidSuitAllyMakeHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitHeartAlone) => {
+            input[StateIndex::BidSuitAllyMakeAloneHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitDiamond) => {
+            input[StateIndex::BidSuitAllyMakeDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitDiamondAlone) => {
+            input[StateIndex::BidSuitAllyMakeAloneDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitClub) => {
+            input[StateIndex::BidSuitAllyMakeClub as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::MakeSuitClubAlone) => {
+            input[StateIndex::BidSuitAllyMakeAloneClub as usize] = 1.0;
+        }
+        (&RelativePosition::Ally, &ActionIndex::PassSuit) => {
+            input[StateIndex::BidSuitAllyPass as usize] = 1.0;
+        }
+        // Right
+        (&RelativePosition::Right, &ActionIndex::MakeSuitSpade) => {
+            input[StateIndex::BidSuitRightMakeSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::MakeSuitSpadeAlone) => {
+            input[StateIndex::BidSuitRightMakeAloneSpade as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::MakeSuitHeart) => {
+            input[StateIndex::BidSuitRightMakeHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::MakeSuitHeartAlone) => {
+            input[StateIndex::BidSuitRightMakeAloneHeart as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::MakeSuitDiamond) => {
+            input[StateIndex::BidSuitRightMakeDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::MakeSuitDiamondAlone) => {
+            input[StateIndex::BidSuitRightMakeAloneDiamond as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::MakeSuitClub) => {
+            input[StateIndex::BidSuitRightMakeClub as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::MakeSuitClubAlone) => {
+            input[StateIndex::BidSuitRightMakeAloneClub as usize] = 1.0;
+        }
+        (&RelativePosition::Right, &ActionIndex::PassSuit) => {
+            input[StateIndex::BidSuitRightPass as usize] = 1.0;
+        }
+        _ => panic!("invalid relative position or suit bid action"),
+    }
+}
+
 pub fn set_bid_upcard(
     input: &mut NeuralNetworkInput,
     relative_position: &RelativePosition,

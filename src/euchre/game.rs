@@ -230,9 +230,6 @@ fn run_bid_upcard(
 ) -> (Option<RelativeTeam>, bool, bool, bool, bool) {
     match get_bid_upcard_action(
         position_1_player,
-        position_2_player,
-        position_3_player,
-        dealer_player,
         position_1_input,
         position_2_input,
         position_3_input,
@@ -245,9 +242,6 @@ fn run_bid_upcard(
     }
     match get_bid_upcard_action(
         position_2_player,
-        position_3_player,
-        dealer_player,
-        position_1_player,
         position_2_input,
         position_3_input,
         dealer_input,
@@ -260,9 +254,6 @@ fn run_bid_upcard(
     }
     match get_bid_upcard_action(
         position_3_player,
-        dealer_player,
-        position_1_player,
-        position_2_player,
         position_3_input,
         dealer_input,
         position_1_input,
@@ -275,9 +266,6 @@ fn run_bid_upcard(
     }
     match get_bid_upcard_action(
         dealer_player,
-        position_1_player,
-        position_2_player,
-        position_3_player,
         dealer_input,
         position_1_input,
         position_2_input,
@@ -293,9 +281,6 @@ fn run_bid_upcard(
 
 fn get_bid_upcard_action(
     myself: &NeuralNetwork,
-    left: &NeuralNetwork,
-    ally: &NeuralNetwork,
-    right: &NeuralNetwork,
     myself_input: &mut NeuralNetworkInput,
     left_input: &mut NeuralNetworkInput,
     ally_input: &mut NeuralNetworkInput,
@@ -394,6 +379,7 @@ fn run_bid_suit(
     position_3_input: &mut NeuralNetworkInput,
     upcard_suit: &Suit,
 ) -> (Option<RelativeTeam>, Option<Suit>, bool, bool, bool, bool) {
+    let available_actions = get_bid_suit_available_actions(upcard_suit);
     (
         Some(RelativeTeam::Dealer),
         Some(Suit::Spade),
@@ -407,16 +393,210 @@ fn run_bid_suit(
 // TODO: unstub
 fn get_bid_suit_action(
     myself: &NeuralNetwork,
-    left: &NeuralNetwork,
-    ally: &NeuralNetwork,
-    right: &NeuralNetwork,
     myself_input: &mut NeuralNetworkInput,
     left_input: &mut NeuralNetworkInput,
     ally_input: &mut NeuralNetworkInput,
     right_input: &mut NeuralNetworkInput,
     available_actions: &AvailableActions,
 ) -> Option<(bool, Suit, bool)> {
-    None
+    match myself.get_action(&myself_input, available_actions) {
+        ActionIndex::MakeSuitSpade => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitSpade,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitSpade,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitSpade,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitSpade,
+            );
+            return Some((true, Suit::Spade, false));
+        }
+        ActionIndex::MakeSuitSpadeAlone => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitSpadeAlone,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitSpadeAlone,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitSpadeAlone,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitSpadeAlone,
+            );
+            return Some((true, Suit::Spade, true));
+        }
+        ActionIndex::MakeSuitHeart => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitHeart,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitHeart,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitHeart,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitHeart,
+            );
+            return Some((true, Suit::Heart, false));
+        }
+        ActionIndex::MakeSuitHeartAlone => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitHeartAlone,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitHeartAlone,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitHeartAlone,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitHeartAlone,
+            );
+            return Some((true, Suit::Heart, true));
+        }
+        ActionIndex::MakeSuitDiamond => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitDiamond,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitDiamond,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitDiamond,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitDiamond,
+            );
+            return Some((true, Suit::Diamond, false));
+        }
+        ActionIndex::MakeSuitDiamondAlone => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitDiamondAlone,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitDiamondAlone,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitDiamondAlone,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitDiamondAlone,
+            );
+            return Some((true, Suit::Diamond, true));
+        }
+        ActionIndex::MakeSuitClub => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitClub,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitClub,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitClub,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitClub,
+            );
+            return Some((true, Suit::Club, false));
+        }
+        ActionIndex::MakeSuitClubAlone => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::MakeSuitClubAlone,
+            );
+            set_bid_suit(
+                left_input,
+                &RelativePosition::Right,
+                &ActionIndex::MakeSuitClubAlone,
+            );
+            set_bid_suit(
+                ally_input,
+                &RelativePosition::Ally,
+                &ActionIndex::MakeSuitClubAlone,
+            );
+            set_bid_suit(
+                right_input,
+                &RelativePosition::Left,
+                &ActionIndex::MakeSuitClubAlone,
+            );
+            return Some((true, Suit::Club, true));
+        }
+        ActionIndex::PassSuit => {
+            set_bid_suit(
+                myself_input,
+                &RelativePosition::Myself,
+                &ActionIndex::PassSuit,
+            );
+            set_bid_suit(left_input, &RelativePosition::Right, &ActionIndex::PassSuit);
+            set_bid_suit(ally_input, &RelativePosition::Ally, &ActionIndex::PassSuit);
+            set_bid_suit(right_input, &RelativePosition::Left, &ActionIndex::PassSuit);
+            return None;
+        }
+        _ => panic!("invalid bid upcard action"),
+    }
 }
 
 // TODO: unstub
