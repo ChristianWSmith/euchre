@@ -2,16 +2,17 @@ use lazy_static::lazy_static;
 use rand::prelude::*;
 use strum::EnumCount;
 
-use crate::euchre::enums::Action;
+use crate::euchre::enums::{ActionIndex, StateIndex};
 
-pub const INPUT_NODES: usize = 554;
-pub const OUTPUT_NODES: usize = Action::COUNT;
-const HIDDEN_NODES: usize = (INPUT_NODES + OUTPUT_NODES) * 2 / 3;
+const HIDDEN_NODES: usize = (StateIndex::COUNT + ActionIndex::COUNT) * 2 / 3;
+
+pub type AvailableActions = [bool; ActionIndex::COUNT];
+pub type NeuralNetworkInput = [f64; StateIndex::COUNT];
 
 lazy_static! {
-    static ref INITIAL_INDICES: [usize; OUTPUT_NODES] = {
-        let mut indices = [0; OUTPUT_NODES];
-        for i in 0..OUTPUT_NODES {
+    static ref INITIAL_INDICES: [usize; ActionIndex::COUNT] = {
+        let mut indices = [0; ActionIndex::COUNT];
+        for i in 0..ActionIndex::COUNT {
             indices[i] = i;
         }
         indices
@@ -19,14 +20,14 @@ lazy_static! {
 }
 
 pub struct NeuralNetwork {
-    weights_input_hidden: [[f64; HIDDEN_NODES]; INPUT_NODES],
-    weights_hidden_output: [[f64; OUTPUT_NODES]; HIDDEN_NODES],
+    weights_input_hidden: [[f64; HIDDEN_NODES]; StateIndex::COUNT],
+    weights_hidden_output: [[f64; ActionIndex::COUNT]; HIDDEN_NODES],
 }
 
 impl NeuralNetwork {
     pub fn new() -> Self {
-        let weights_input_hidden = [[0.0; HIDDEN_NODES]; INPUT_NODES];
-        let weights_hidden_output = [[0.0; OUTPUT_NODES]; HIDDEN_NODES];
+        let weights_input_hidden = [[0.0; HIDDEN_NODES]; StateIndex::COUNT];
+        let weights_hidden_output = [[0.0; ActionIndex::COUNT]; HIDDEN_NODES];
 
         NeuralNetwork {
             weights_input_hidden,
@@ -36,13 +37,13 @@ impl NeuralNetwork {
 
     pub fn init(&mut self) {
         let mut rng = rand::thread_rng();
-        for i in 0..INPUT_NODES {
+        for i in 0..StateIndex::COUNT {
             for j in 0..HIDDEN_NODES {
                 self.weights_input_hidden[i][j] = rng.gen_range(-0.5..0.5);
             }
         }
         for i in 0..HIDDEN_NODES {
-            for j in 0..OUTPUT_NODES {
+            for j in 0..ActionIndex::COUNT {
                 self.weights_hidden_output[i][j] = rng.gen_range(-0.5..0.5);
             }
         }
@@ -61,7 +62,7 @@ impl NeuralNetwork {
         let mut rng = rand::thread_rng();
         let mut child = NeuralNetwork::new();
 
-        for i in 0..INPUT_NODES {
+        for i in 0..StateIndex::COUNT {
             for j in 0..HIDDEN_NODES {
                 if rng.gen::<f64>() < 0.5 {
                     child.weights_input_hidden[i][j] = self.weights_input_hidden[i][j];
@@ -72,7 +73,7 @@ impl NeuralNetwork {
         }
 
         for i in 0..HIDDEN_NODES {
-            for j in 0..OUTPUT_NODES {
+            for j in 0..ActionIndex::COUNT {
                 if rng.gen::<f64>() < 0.5 {
                     child.weights_hidden_output[i][j] = self.weights_hidden_output[i][j];
                 } else {
@@ -82,7 +83,7 @@ impl NeuralNetwork {
         }
 
         let mut rng = rand::thread_rng();
-        for i in 0..INPUT_NODES {
+        for i in 0..StateIndex::COUNT {
             for j in 0..HIDDEN_NODES {
                 if rng.gen::<f64>() < mutation_rate {
                     child.weights_input_hidden[i][j] +=
@@ -91,7 +92,7 @@ impl NeuralNetwork {
             }
         }
         for i in 0..HIDDEN_NODES {
-            for j in 0..OUTPUT_NODES {
+            for j in 0..ActionIndex::COUNT {
                 if rng.gen::<f64>() < mutation_rate {
                     child.weights_hidden_output[i][j] +=
                         rng.gen_range(-mutation_magnitude..mutation_magnitude);
@@ -102,19 +103,19 @@ impl NeuralNetwork {
         child
     }
 
-    pub fn query(&self, inputs: &[f64; INPUT_NODES]) -> [usize; OUTPUT_NODES] {
+    fn query(&self, inputs: &NeuralNetworkInput) -> [f64; ActionIndex::COUNT] {
         let mut hidden_outputs = [0.0; HIDDEN_NODES];
-        let mut final_outputs = [0.0; OUTPUT_NODES];
+        let mut final_outputs = [0.0; ActionIndex::COUNT];
 
         for i in 0..HIDDEN_NODES {
             let mut sum = 0.0;
-            for j in 0..INPUT_NODES {
+            for j in 0..StateIndex::COUNT {
                 sum += inputs[j] * self.weights_input_hidden[j][i];
             }
             hidden_outputs[i] = NeuralNetwork::sigmoid(sum);
         }
 
-        for i in 0..OUTPUT_NODES {
+        for i in 0..ActionIndex::COUNT {
             let mut sum = 0.0;
             for j in 0..HIDDEN_NODES {
                 sum += hidden_outputs[j] * self.weights_hidden_output[j][i];
@@ -122,8 +123,22 @@ impl NeuralNetwork {
             final_outputs[i] = NeuralNetwork::sigmoid(sum);
         }
 
-        let mut indices: [usize; OUTPUT_NODES] = INITIAL_INDICES.clone();
+        final_outputs
+    }
+
+    pub fn get_action(
+        &self,
+        inputs: &NeuralNetworkInput,
+        available_actions: &AvailableActions,
+    ) -> ActionIndex {
+        let final_outputs = self.query(inputs);
+        let mut indices: [usize; ActionIndex::COUNT] = INITIAL_INDICES.clone();
         indices.sort_by(|&a, &b| final_outputs[b].partial_cmp(&final_outputs[a]).unwrap());
-        indices
+        for action_index in indices {
+            if available_actions[action_index] {
+                return ActionIndex::from_usize(action_index);
+            }
+        }
+        panic!("No available actions!")
     }
 }
