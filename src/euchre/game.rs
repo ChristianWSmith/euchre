@@ -234,8 +234,8 @@ fn run_bid_upcard(
         position_3_input,
         dealer_input,
     ) {
-        Some((true, true)) => return (true, false, false, false, true),
-        Some((true, false)) => return (true, false, false, false, false),
+        Some((true, true)) => return (Some(RelativeTeam::Other), false, false, false, true),
+        Some((true, false)) => return (Some(RelativeTeam::Other), false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
@@ -249,8 +249,8 @@ fn run_bid_upcard(
         dealer_input,
         position_1_input,
     ) {
-        Some((true, true)) => return (true, true, false, false, false),
-        Some((true, false)) => return (true, false, false, false, false),
+        Some((true, true)) => return (Some(RelativeTeam::Dealer), true, false, false, false),
+        Some((true, false)) => return (Some(RelativeTeam::Dealer), false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
@@ -264,8 +264,8 @@ fn run_bid_upcard(
         position_1_input,
         position_2_input,
     ) {
-        Some((true, true)) => return (true, false, true, false, false),
-        Some((true, false)) => return (true, false, false, false, false),
+        Some((true, true)) => return (Some(RelativeTeam::Other), false, true, false, false),
+        Some((true, false)) => return (Some(RelativeTeam::Other), false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
@@ -279,12 +279,12 @@ fn run_bid_upcard(
         position_2_input,
         position_3_input,
     ) {
-        Some((true, true)) => return (true, false, false, true, false),
-        Some((true, false)) => return (true, false, false, false, false),
+        Some((true, true)) => return (Some(RelativeTeam::Dealer), false, false, true, false),
+        Some((true, false)) => return (Some(RelativeTeam::Dealer), false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
-    (false, false, false, false, false)
+    (None, false, false, false, false)
 }
 
 fn get_bid_upcard_action(
