@@ -1,5 +1,19 @@
 use strum_macros::EnumCount as EnumCountMacro;
 
+pub enum RelativePosition {
+    Myself,
+    Left,
+    Ally,
+    Right,
+}
+
+pub enum Position {
+    North,
+    South,
+    East,
+    West,
+}
+
 pub enum Team {
     NorthSouth,
     EastWest,
@@ -139,7 +153,7 @@ pub enum StateIndex {
     EnemyScore9,
 
     // Dealer
-    DealerSelf,
+    DealerMyself,
     DealerLeft,
     DealerAlly,
     DealerRight,
@@ -209,9 +223,9 @@ pub enum StateIndex {
     HandClubAce,
 
     // Bid Upcard
-    BidUpcardSelfMake,
-    BidUpcardSelfMakeAlone,
-    BidUpcardSelfPass,
+    BidUpcardMyselfMake,
+    BidUpcardMyselfMakeAlone,
+    BidUpcardMyselfPass,
     BidUpcardLeftMake,
     BidUpcardLeftMakeAlone,
     BidUpcardLeftPass,
@@ -223,15 +237,15 @@ pub enum StateIndex {
     BidUpcardRightPass,
 
     // Bid Suit
-    BidSuitSelfMakeSpade,
-    BidSuitSelfMakeHeart,
-    BidSuitSelfMakeDiamond,
-    BidSuitSelfMakeClub,
-    BidSuitSelfMakeAloneSpade,
-    BidSuitSelfMakeAloneHeart,
-    BidSuitSelfMakeAloneDiamond,
-    BidSuitSelfMakeAloneClub,
-    BidSuitSelfPass,
+    BidSuitMyselfMakeSpade,
+    BidSuitMyselfMakeHeart,
+    BidSuitMyselfMakeDiamond,
+    BidSuitMyselfMakeClub,
+    BidSuitMyselfMakeAloneSpade,
+    BidSuitMyselfMakeAloneHeart,
+    BidSuitMyselfMakeAloneDiamond,
+    BidSuitMyselfMakeAloneClub,
+    BidSuitMyselfPass,
     BidSuitLeftMakeSpade,
     BidSuitLeftMakeHeart,
     BidSuitLeftMakeDiamond,
@@ -267,7 +281,7 @@ pub enum StateIndex {
     TrumpSuitClub,
 
     // Trick 1
-    Trick1SelfLead,
+    Trick1MyselfLead,
     Trick1LeftLead,
     Trick1AllyLead,
     Trick1RightLead,
@@ -373,7 +387,7 @@ pub enum StateIndex {
     Trick1Card4ClubAce,
 
     // Trick 2
-    Trick2SelfLead,
+    Trick2MyselfLead,
     Trick2LeftLead,
     Trick2AllyLead,
     Trick2RightLead,
@@ -479,7 +493,7 @@ pub enum StateIndex {
     Trick2Card4ClubAce,
 
     // Trick 3
-    Trick3SelfLead,
+    Trick3MyselfLead,
     Trick3LeftLead,
     Trick3AllyLead,
     Trick3RightLead,
@@ -585,7 +599,7 @@ pub enum StateIndex {
     Trick3Card4ClubAce,
 
     // Trick 4
-    Trick4SelfLead,
+    Trick4MyselfLead,
     Trick4LeftLead,
     Trick4AllyLead,
     Trick4RightLead,

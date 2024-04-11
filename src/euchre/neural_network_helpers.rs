@@ -1,5 +1,23 @@
-use super::enums::StateIndex;
+use super::enums::{RelativePosition, StateIndex};
 use crate::NeuralNetworkInput;
+
+pub fn set_dealer(input: &mut NeuralNetworkInput, relative_position: &RelativePosition) {
+    for dealer_index in [
+        StateIndex::DealerMyself,
+        StateIndex::DealerLeft,
+        StateIndex::DealerAlly,
+        StateIndex::DealerRight,
+    ] {
+        input[dealer_index as usize] = 0.0
+    }
+    match relative_position {
+        RelativePosition::Myself => input[StateIndex::DealerMyself as usize] = 1.0,
+        RelativePosition::Left => input[StateIndex::DealerLeft as usize] = 1.0,
+        RelativePosition::Ally => input[StateIndex::DealerAlly as usize] = 1.0,
+        RelativePosition::Right => input[StateIndex::DealerRight as usize] = 1.0,
+        _ => panic!("invalid relative position"),
+    }
+}
 
 pub fn set_score(input: &mut NeuralNetworkInput, ally_score: u8, enemy_score: u8) {
     for score_index in [
@@ -50,6 +68,6 @@ pub fn set_score(input: &mut NeuralNetworkInput, ally_score: u8, enemy_score: u8
         7 => input[StateIndex::EnemyScore7 as usize] = 1.0,
         8 => input[StateIndex::EnemyScore8 as usize] = 1.0,
         9 => input[StateIndex::EnemyScore9 as usize] = 1.0,
-        _ => panic!("invalid ally score"),
+        _ => panic!("invalid enemy score"),
     }
 }
