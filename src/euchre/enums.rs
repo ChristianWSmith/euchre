@@ -14,6 +14,11 @@ pub enum Position {
     West,
 }
 
+pub enum RelativeTeam {
+    Dealer,
+    Other,
+}
+
 pub enum Team {
     NorthSouth,
     EastWest,

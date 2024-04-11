@@ -1,17 +1,17 @@
 use crate::{NeuralNetwork, NeuralNetworkInput};
-use rand::{seq::IteratorRandom, Rng};
+use rand::Rng;
 use strum::EnumCount;
 
 use super::{
     enums::{Position, Rank, RelativePosition, StateIndex, Suit, Team},
-    game_helpers::left_player,
+    game_helpers::{deal, left_player},
     neural_network_helpers::{set_dealer, set_score},
 };
 
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref DECK: [Card; Rank::COUNT * Suit::COUNT] = {
+    pub static ref DECK: [Card; Rank::COUNT * Suit::COUNT] = {
         let mut deck = [Card {
             suit: Suit::Spade,
             rank: Rank::Nine,
@@ -40,9 +40,9 @@ lazy_static! {
 }
 
 #[derive(Copy, Clone)]
-struct Card {
-    suit: Suit,
-    rank: Rank,
+pub struct Card {
+    pub suit: Suit,
+    pub rank: Rank,
 }
 
 pub fn play_euchre(
@@ -164,5 +164,16 @@ fn run_round(
     position_2_input: &mut NeuralNetworkInput,
     position_3_input: &mut NeuralNetworkInput,
 ) -> (u8, u8) {
+    let (hands, upcard): ([[Option<Card>; 6]; 4], Card) = deal();
+    let mut dealer_hand = hands[0];
+    let mut position_1_hand = hands[1];
+    let mut position_2_hand = hands[2];
+    let mut position_3_hand = hands[3];
+    // TODO: update inputs
     (0, 0)
 }
+
+fn run_bid_upcard() {}
+fn run_discard() {}
+fn run_bid_suit() {}
+fn run_trick() {}
