@@ -404,6 +404,7 @@ fn run_bid_suit(
     )
 }
 
+// TODO: unstub
 fn get_bid_suit_action(
     myself: &NeuralNetwork,
     left: &NeuralNetwork,

@@ -2,6 +2,28 @@ use super::{constants::*, enums::*, types::*};
 use crate::{AvailableActions, NeuralNetworkInput};
 use strum::EnumCount;
 
+pub fn get_bid_suit_available_actions(suit: &Suit) -> AvailableActions {
+    let mut available_actions: [bool; ActionIndex::COUNT] = [false; ActionIndex::COUNT];
+    available_actions[ActionIndex::PassSuit as usize] = true;
+    if *suit != Suit::Spade {
+        available_actions[ActionIndex::MakeSuitSpade as usize] = true;
+        available_actions[ActionIndex::MakeSuitSpadeAlone as usize] = true;
+    }
+    if *suit != Suit::Heart {
+        available_actions[ActionIndex::MakeSuitHeart as usize] = true;
+        available_actions[ActionIndex::MakeSuitHeartAlone as usize] = true;
+    }
+    if *suit != Suit::Diamond {
+        available_actions[ActionIndex::MakeSuitDiamond as usize] = true;
+        available_actions[ActionIndex::MakeSuitDiamondAlone as usize] = true;
+    }
+    if *suit != Suit::Club {
+        available_actions[ActionIndex::MakeSuitClub as usize] = true;
+        available_actions[ActionIndex::MakeSuitClubAlone as usize] = true;
+    }
+    available_actions
+}
+
 pub fn get_discard_available_actions(hand: &[Option<Card>; 6]) -> AvailableActions {
     let mut available_actions: [bool; ActionIndex::COUNT] = [false; ActionIndex::COUNT];
     for card in *hand {
