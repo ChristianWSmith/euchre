@@ -135,23 +135,28 @@ fn run_round(
     set_upcard(position_1_input, &upcard);
     set_upcard(position_2_input, &upcard);
     set_upcard(position_3_input, &upcard);
-    let (mut made, mut skip_dealer, mut skip_position_1, mut skip_position_2, mut skip_position_3) =
-        run_bid_upcard(
-            dealer_player,
-            position_1_player,
-            position_2_player,
-            position_3_player,
-            dealer_input,
-            position_1_input,
-            position_2_input,
-            position_3_input,
-        );
-    if made {
+    let (
+        mut makingTeam,
+        mut skip_dealer,
+        mut skip_position_1,
+        mut skip_position_2,
+        mut skip_position_3,
+    ) = run_bid_upcard(
+        dealer_player,
+        position_1_player,
+        position_2_player,
+        position_3_player,
+        dealer_input,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+    );
+    if makingTeam.is_some() {
         dealer_hand[5] = Some(upcard);
         run_discard(dealer_player, dealer_input, &dealer_hand);
     } else {
         (
-            made,
+            makingTeam,
             skip_dealer,
             skip_position_1,
             skip_position_2,
@@ -168,10 +173,45 @@ fn run_round(
             &upcard,
         );
     }
-    if !made {
+    if makingTeam.is_none() {
         return (0, 0);
     }
-    (0, 0)
+    let mut dealer_team_tricks: u8 = 0;
+    let mut other_team_tricks: u8 = 0;
+
+    for _ in 0..5 {
+        run_trick();
+    }
+
+    match (
+        makingTeam,
+        dealer_team_tricks,
+        other_team_tricks,
+        skip_dealer,
+        skip_position_1,
+        skip_position_2,
+        skip_position_3,
+    ) {
+        (Some(RelativeTeam::Dealer), 5, _, true, _, _, _)
+        | (Some(RelativeTeam::Dealer), 5, _, _, _, true, _) => return (4, 0),
+        (Some(RelativeTeam::Other), _, 5, _, true, _, _)
+        | (Some(RelativeTeam::Other), _, 5, _, _, _, true) => return (0, 4),
+        (Some(RelativeTeam::Dealer), 5, _, false, _, _, _)
+        | (Some(RelativeTeam::Dealer), 5, _, _, _, false, _)
+        | (Some(RelativeTeam::Other), _, 2, _, _, _, _)
+        | (Some(RelativeTeam::Other), _, 1, _, _, _, _)
+        | (Some(RelativeTeam::Other), _, 0, _, _, _, _) => return (2, 0),
+        (Some(RelativeTeam::Dealer), 2, _, _, _, _, _)
+        | (Some(RelativeTeam::Dealer), 1, _, _, _, _, _)
+        | (Some(RelativeTeam::Dealer), 0, _, _, _, _, _)
+        | (Some(RelativeTeam::Other), _, 5, _, false, _, _)
+        | (Some(RelativeTeam::Other), _, 5, _, _, _, false) => return (0, 2),
+        (Some(RelativeTeam::Dealer), 4, _, _, _, _, _)
+        | (Some(RelativeTeam::Dealer), 3, _, _, _, _, _) => return (1, 0),
+        (Some(RelativeTeam::Other), _, 4, _, _, _, _)
+        | (Some(RelativeTeam::Other), _, 3, _, _, _, _) => return (0, 1),
+        _ => panic!("failed to score round"),
+    }
 }
 
 fn run_bid_upcard(
@@ -183,7 +223,7 @@ fn run_bid_upcard(
     position_1_input: &mut NeuralNetworkInput,
     position_2_input: &mut NeuralNetworkInput,
     position_3_input: &mut NeuralNetworkInput,
-) -> (bool, bool, bool, bool, bool) {
+) -> (Option<RelativeTeam>, bool, bool, bool, bool) {
     match get_bid_upcard_action(
         position_1_player,
         position_2_player,
@@ -349,8 +389,8 @@ fn run_bid_suit(
     position_2_input: &mut NeuralNetworkInput,
     position_3_input: &mut NeuralNetworkInput,
     upcard: &Card,
-) -> (bool, bool, bool, bool, bool) {
-    (false, false, false, false, false)
+) -> (Option<RelativeTeam>, bool, bool, bool, bool) {
+    (Some(RelativeTeam::Dealer), false, false, false, false)
 }
 
 // TODO: unstub
