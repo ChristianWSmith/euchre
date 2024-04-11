@@ -135,16 +135,32 @@ fn run_round(
     set_upcard(position_1_input, &upcard);
     set_upcard(position_2_input, &upcard);
     set_upcard(position_3_input, &upcard);
-    let (made, alone) = run_bid_upcard(
-        dealer_player,
-        position_1_player,
-        position_2_player,
-        position_3_player,
-        dealer_input,
-        position_1_input,
-        position_2_input,
-        position_3_input,
-    );
+    let (mut made, mut skip_dealer, mut skip_position_1, mut skip_position_2, mut skip_position_3) =
+        run_bid_upcard(
+            dealer_player,
+            position_1_player,
+            position_2_player,
+            position_3_player,
+            dealer_input,
+            position_1_input,
+            position_2_input,
+            position_3_input,
+        );
+    if made {
+        dealer_hand[5] = Some(upcard);
+        run_discard(dealer_player, dealer_input, &dealer_hand);
+    } else {
+        (
+            made,
+            skip_dealer,
+            skip_position_1,
+            skip_position_2,
+            skip_position_3,
+        ) = run_bid_suit();
+    }
+    if !made {
+        return (0, 0);
+    }
     (0, 0)
 }
 
@@ -158,7 +174,7 @@ fn run_bid_upcard(
     position_1_input: &mut NeuralNetworkInput,
     position_2_input: &mut NeuralNetworkInput,
     position_3_input: &mut NeuralNetworkInput,
-) -> (bool, bool) {
+) -> (bool, bool, bool, bool, bool) {
     match get_bid_upcard_action(
         position_1_player,
         position_2_player,
@@ -169,8 +185,8 @@ fn run_bid_upcard(
         position_3_input,
         dealer_input,
     ) {
-        Some((true, true)) => return (true, true),
-        Some((true, false)) => return (true, false),
+        Some((true, true)) => return (true, false, false, false, true),
+        Some((true, false)) => return (true, false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
@@ -184,8 +200,8 @@ fn run_bid_upcard(
         dealer_input,
         position_1_input,
     ) {
-        Some((true, true)) => return (true, true),
-        Some((true, false)) => return (true, false),
+        Some((true, true)) => return (true, true, false, false, false),
+        Some((true, false)) => return (true, false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
@@ -199,8 +215,8 @@ fn run_bid_upcard(
         position_1_input,
         position_2_input,
     ) {
-        Some((true, true)) => return (true, true),
-        Some((true, false)) => return (true, false),
+        Some((true, true)) => return (true, false, true, false, false),
+        Some((true, false)) => return (true, false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
@@ -214,12 +230,12 @@ fn run_bid_upcard(
         position_2_input,
         position_3_input,
     ) {
-        Some((true, true)) => return (true, true),
-        Some((true, false)) => return (true, false),
+        Some((true, true)) => return (true, false, false, true, false),
+        Some((true, false)) => return (true, false, false, false, false),
         None => {}
         _ => panic!("invalid bid upcard action result"),
     }
-    (false, false)
+    (false, false, false, false, false)
 }
 
 fn get_bid_upcard_action(
@@ -307,10 +323,17 @@ fn get_bid_upcard_action(
 }
 
 // TODO: unstub
-fn run_discard() {}
+fn run_discard(player: &NeuralNetwork, input: &mut NeuralNetworkInput, hand: &[Option<Card>; 6]) {
+    discard(
+        input,
+        &player.get_action(input, &get_discard_available_actions(hand)),
+    );
+}
 
 // TODO: unstub
-fn run_bid_suit() {}
+fn run_bid_suit() -> (bool, bool, bool, bool, bool) {
+    (false, false, false, false, false)
+}
 
 // TODO: unstub
 fn run_trick() {}

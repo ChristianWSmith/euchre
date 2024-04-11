@@ -1,5 +1,75 @@
 use super::{constants::*, enums::*, types::*};
-use crate::NeuralNetworkInput;
+use crate::{AvailableActions, NeuralNetworkInput};
+use strum::EnumCount;
+
+pub fn get_discard_available_actions(hand: &[Option<Card>; 6]) -> AvailableActions {
+    let mut available_actions: [bool; ActionIndex::COUNT] = [false; ActionIndex::COUNT];
+    for card in *hand {
+        match card {
+            // Spade
+            Some(CARD_SPADE_NINE) => {
+                available_actions[ActionIndex::DiscardSpadeNine as usize] = true
+            }
+            Some(CARD_SPADE_TEN) => available_actions[ActionIndex::DiscardSpadeTen as usize] = true,
+            Some(CARD_SPADE_JACK) => {
+                available_actions[ActionIndex::DiscardSpadeJack as usize] = true
+            }
+            Some(CARD_SPADE_QUEEN) => {
+                available_actions[ActionIndex::DiscardSpadeQueen as usize] = true
+            }
+            Some(CARD_SPADE_KING) => {
+                available_actions[ActionIndex::DiscardSpadeKing as usize] = true
+            }
+            Some(CARD_SPADE_ACE) => available_actions[ActionIndex::DiscardSpadeAce as usize] = true,
+            // Heart
+            Some(CARD_HEART_NINE) => {
+                available_actions[ActionIndex::DiscardHeartNine as usize] = true
+            }
+            Some(CARD_HEART_TEN) => available_actions[ActionIndex::DiscardHeartTen as usize] = true,
+            Some(CARD_HEART_JACK) => {
+                available_actions[ActionIndex::DiscardHeartJack as usize] = true
+            }
+            Some(CARD_HEART_QUEEN) => {
+                available_actions[ActionIndex::DiscardHeartQueen as usize] = true
+            }
+            Some(CARD_HEART_KING) => {
+                available_actions[ActionIndex::DiscardHeartKing as usize] = true
+            }
+            Some(CARD_HEART_ACE) => available_actions[ActionIndex::DiscardHeartAce as usize] = true,
+            // Diamond
+            Some(CARD_DIAMOND_NINE) => {
+                available_actions[ActionIndex::DiscardDiamondNine as usize] = true
+            }
+            Some(CARD_DIAMOND_TEN) => {
+                available_actions[ActionIndex::DiscardDiamondTen as usize] = true
+            }
+            Some(CARD_DIAMOND_JACK) => {
+                available_actions[ActionIndex::DiscardDiamondJack as usize] = true
+            }
+            Some(CARD_DIAMOND_QUEEN) => {
+                available_actions[ActionIndex::DiscardDiamondQueen as usize] = true
+            }
+            Some(CARD_DIAMOND_KING) => {
+                available_actions[ActionIndex::DiscardDiamondKing as usize] = true
+            }
+            Some(CARD_DIAMOND_ACE) => {
+                available_actions[ActionIndex::DiscardDiamondAce as usize] = true
+            }
+            // Club
+            Some(CARD_CLUB_NINE) => available_actions[ActionIndex::DiscardClubNine as usize] = true,
+            Some(CARD_CLUB_TEN) => available_actions[ActionIndex::DiscardClubTen as usize] = true,
+            Some(CARD_CLUB_JACK) => available_actions[ActionIndex::DiscardClubJack as usize] = true,
+            Some(CARD_CLUB_QUEEN) => {
+                available_actions[ActionIndex::DiscardClubQueen as usize] = true
+            }
+            Some(CARD_CLUB_KING) => available_actions[ActionIndex::DiscardClubKing as usize] = true,
+            Some(CARD_CLUB_ACE) => available_actions[ActionIndex::DiscardClubAce as usize] = true,
+            None => {}
+            _ => panic!("invalid card"),
+        }
+    }
+    available_actions
+}
 
 pub fn set_bid_upcard(
     input: &mut NeuralNetworkInput,
@@ -122,36 +192,36 @@ pub fn set_hand(input: &mut NeuralNetworkInput, hand: &[Option<Card>; 6]) {
     }
 }
 
-pub fn discard(input: &mut NeuralNetworkInput, card: &Card) {
-    match *card {
+pub fn discard(input: &mut NeuralNetworkInput, action: &ActionIndex) {
+    match *action {
         // Spade
-        CARD_SPADE_NINE => input[StateIndex::HandSpadeNine as usize] = 0.0,
-        CARD_SPADE_TEN => input[StateIndex::HandSpadeTen as usize] = 0.0,
-        CARD_SPADE_JACK => input[StateIndex::HandSpadeJack as usize] = 0.0,
-        CARD_SPADE_QUEEN => input[StateIndex::HandSpadeQueen as usize] = 0.0,
-        CARD_SPADE_KING => input[StateIndex::HandSpadeKing as usize] = 0.0,
-        CARD_SPADE_ACE => input[StateIndex::HandSpadeAce as usize] = 0.0,
+        ActionIndex::DiscardSpadeNine => input[StateIndex::HandSpadeNine as usize] = 0.0,
+        ActionIndex::DiscardSpadeTen => input[StateIndex::HandSpadeTen as usize] = 0.0,
+        ActionIndex::DiscardSpadeJack => input[StateIndex::HandSpadeJack as usize] = 0.0,
+        ActionIndex::DiscardSpadeQueen => input[StateIndex::HandSpadeQueen as usize] = 0.0,
+        ActionIndex::DiscardSpadeKing => input[StateIndex::HandSpadeKing as usize] = 0.0,
+        ActionIndex::DiscardSpadeAce => input[StateIndex::HandSpadeAce as usize] = 0.0,
         // Heart
-        CARD_HEART_NINE => input[StateIndex::HandHeartNine as usize] = 0.0,
-        CARD_HEART_TEN => input[StateIndex::HandHeartTen as usize] = 0.0,
-        CARD_HEART_JACK => input[StateIndex::HandHeartJack as usize] = 0.0,
-        CARD_HEART_QUEEN => input[StateIndex::HandHeartQueen as usize] = 0.0,
-        CARD_HEART_KING => input[StateIndex::HandHeartKing as usize] = 0.0,
-        CARD_HEART_ACE => input[StateIndex::HandHeartAce as usize] = 0.0,
+        ActionIndex::DiscardHeartNine => input[StateIndex::HandHeartNine as usize] = 0.0,
+        ActionIndex::DiscardHeartTen => input[StateIndex::HandHeartTen as usize] = 0.0,
+        ActionIndex::DiscardHeartJack => input[StateIndex::HandHeartJack as usize] = 0.0,
+        ActionIndex::DiscardHeartQueen => input[StateIndex::HandHeartQueen as usize] = 0.0,
+        ActionIndex::DiscardHeartKing => input[StateIndex::HandHeartKing as usize] = 0.0,
+        ActionIndex::DiscardHeartAce => input[StateIndex::HandHeartAce as usize] = 0.0,
         // Diamond
-        CARD_DIAMOND_NINE => input[StateIndex::HandDiamondNine as usize] = 0.0,
-        CARD_DIAMOND_TEN => input[StateIndex::HandDiamondTen as usize] = 0.0,
-        CARD_DIAMOND_JACK => input[StateIndex::HandDiamondJack as usize] = 0.0,
-        CARD_DIAMOND_QUEEN => input[StateIndex::HandDiamondQueen as usize] = 0.0,
-        CARD_DIAMOND_KING => input[StateIndex::HandDiamondKing as usize] = 0.0,
-        CARD_DIAMOND_ACE => input[StateIndex::HandDiamondAce as usize] = 0.0,
+        ActionIndex::DiscardDiamondNine => input[StateIndex::HandDiamondNine as usize] = 0.0,
+        ActionIndex::DiscardDiamondTen => input[StateIndex::HandDiamondTen as usize] = 0.0,
+        ActionIndex::DiscardDiamondJack => input[StateIndex::HandDiamondJack as usize] = 0.0,
+        ActionIndex::DiscardDiamondQueen => input[StateIndex::HandDiamondQueen as usize] = 0.0,
+        ActionIndex::DiscardDiamondKing => input[StateIndex::HandDiamondKing as usize] = 0.0,
+        ActionIndex::DiscardDiamondAce => input[StateIndex::HandDiamondAce as usize] = 0.0,
         // Club
-        CARD_CLUB_NINE => input[StateIndex::HandClubNine as usize] = 0.0,
-        CARD_CLUB_TEN => input[StateIndex::HandClubTen as usize] = 0.0,
-        CARD_CLUB_JACK => input[StateIndex::HandClubJack as usize] = 0.0,
-        CARD_CLUB_QUEEN => input[StateIndex::HandClubQueen as usize] = 0.0,
-        CARD_CLUB_KING => input[StateIndex::HandClubKing as usize] = 0.0,
-        CARD_CLUB_ACE => input[StateIndex::HandClubAce as usize] = 0.0,
+        ActionIndex::DiscardClubNine => input[StateIndex::HandClubNine as usize] = 0.0,
+        ActionIndex::DiscardClubTen => input[StateIndex::HandClubTen as usize] = 0.0,
+        ActionIndex::DiscardClubJack => input[StateIndex::HandClubJack as usize] = 0.0,
+        ActionIndex::DiscardClubQueen => input[StateIndex::HandClubQueen as usize] = 0.0,
+        ActionIndex::DiscardClubKing => input[StateIndex::HandClubKing as usize] = 0.0,
+        ActionIndex::DiscardClubAce => input[StateIndex::HandClubAce as usize] = 0.0,
         _ => panic!("invalid card"),
     }
 }
