@@ -380,17 +380,61 @@ fn run_bid_suit(
     upcard_suit: &Suit,
 ) -> (Option<RelativeTeam>, Option<Suit>, bool, bool, bool, bool) {
     let available_actions = get_bid_suit_available_actions(upcard_suit);
-    (
-        Some(RelativeTeam::Dealer),
-        Some(Suit::Spade),
-        false,
-        false,
-        false,
-        false,
-    )
+    match get_bid_suit_action(
+        position_1_player,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+        dealer_input,
+        &available_actions,
+    ) {
+        Some((true, true)) => return (Some(RelativeTeam::Other), false, false, false, true),
+        Some((true, false)) => return (Some(RelativeTeam::Other), false, false, false, false),
+        None => {}
+        _ => panic!("invalid bid suit action result"),
+    }
+    match get_bid_suit_action(
+        position_2_player,
+        position_2_input,
+        position_3_input,
+        dealer_input,
+        position_1_input,
+        &available_actions,
+    ) {
+        Some((true, true)) => return (Some(RelativeTeam::Dealer), true, false, false, false),
+        Some((true, false)) => return (Some(RelativeTeam::Dealer), false, false, false, false),
+        None => {}
+        _ => panic!("invalid bid suit action result"),
+    }
+    match get_bid_suit_action(
+        position_3_player,
+        position_3_input,
+        dealer_input,
+        position_1_input,
+        position_2_input,
+        &available_actions,
+    ) {
+        Some((true, true)) => return (Some(RelativeTeam::Other), false, true, false, false),
+        Some((true, false)) => return (Some(RelativeTeam::Other), false, false, false, false),
+        None => {}
+        _ => panic!("invalid bid suit action result"),
+    }
+    match get_bid_suit_action(
+        dealer_player,
+        dealer_input,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+        &available_actions,
+    ) {
+        Some((true, true)) => return (Some(RelativeTeam::Dealer), false, false, true, false),
+        Some((true, false)) => return (Some(RelativeTeam::Dealer), false, false, false, false),
+        None => {}
+        _ => panic!("invalid bid suit action result"),
+    }
+    (None, None, false, false, false, false)
 }
 
-// TODO: unstub
 fn get_bid_suit_action(
     myself: &NeuralNetwork,
     myself_input: &mut NeuralNetworkInput,
