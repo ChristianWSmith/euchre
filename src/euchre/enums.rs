@@ -1,5 +1,44 @@
 use strum_macros::EnumCount as EnumCountMacro;
 
+pub enum Team {
+    NorthSouth,
+    EastWest,
+}
+
+#[derive(EnumCountMacro, Debug, Copy, Clone)]
+#[repr(usize)]
+pub enum Suit {
+    Spade,
+    Heart,
+    Diamond,
+    Club,
+}
+
+impl Suit {
+    pub fn from_usize(x: usize) -> Suit {
+        let y: Suit = unsafe { ::std::mem::transmute(x) };
+        y
+    }
+}
+
+#[derive(EnumCountMacro, Debug, Copy, Clone)]
+#[repr(usize)]
+pub enum Rank {
+    Nine,
+    Ten,
+    Jack,
+    Queen,
+    King,
+    Ace,
+}
+
+impl Rank {
+    pub fn from_usize(x: usize) -> Rank {
+        let y: Rank = unsafe { ::std::mem::transmute(x) };
+        y
+    }
+}
+
 #[allow(dead_code)] // TODO: remove this to ensure all are used
 #[derive(EnumCountMacro, Debug)]
 #[repr(usize)]
