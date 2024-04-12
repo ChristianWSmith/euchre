@@ -1292,7 +1292,7 @@ fn get_trick_action(
     let available_actions = get_play_available_actions(hand, &lead_suit);
     let action = player.get_action(input, &available_actions);
     let card = play_from_hand(hand, &action);
-    if card_wins(&card, &winning_card, &trump_suit) {
+    if card_wins(&card, &winning_card, &lead_suit, &trump_suit) {
         *winning_player_lead_relative_position = Some(*lead_relative_position);
         *winning_card = Some(card);
     }

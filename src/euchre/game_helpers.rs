@@ -3,7 +3,12 @@ use rand::seq::SliceRandom;
 use strum::EnumCount;
 
 // TODO: unstub
-pub fn card_wins(card: &Card, winning_card: &Option<Card>, trump_suit: &Suit) -> bool {
+pub fn card_wins(
+    card: &Card,
+    winning_card: &Option<Card>,
+    lead_suit: &Option<Suit>,
+    trump_suit: &Suit,
+) -> bool {
     return false;
 }
 
