@@ -92,7 +92,6 @@ pub fn play_euchre(
                     south_input,
                 )
             }
-            _ => panic!("invalid dealer"),
         };
 
         match dealer {
@@ -104,7 +103,6 @@ pub fn play_euchre(
                 north_south_score += other_score_delta;
                 east_west_score += dealer_score_delta;
             }
-            _ => panic!("invalid dealer"),
         };
 
         dealer = left_player(dealer);
@@ -152,7 +150,7 @@ fn run_round(
         position_2_input,
         position_3_input,
     );
-    let mut trump_suit: Option<Suit> = None;
+    let trump_suit: Option<Suit>;
     if making_team.is_some() {
         trump_suit = Some(upcard.suit);
         dealer_hand[5] = Some(upcard);
@@ -180,6 +178,11 @@ fn run_round(
     if making_team.is_none() || trump_suit.is_none() {
         return (0, 0);
     }
+
+    set_trump_suit(dealer_input, &trump_suit.unwrap());
+    set_trump_suit(position_1_input, &trump_suit.unwrap());
+    set_trump_suit(position_2_input, &trump_suit.unwrap());
+    set_trump_suit(position_3_input, &trump_suit.unwrap());
 
     let (dealer_team_tricks, other_team_tricks): (u8, u8) = run_tricks(
         dealer_player,
@@ -1109,7 +1112,6 @@ fn run_tricks(
                 trump_suit,
                 &trick_index,
             ),
-            _ => panic!("invalid trick winner"),
         };
 
         set_trick_count(
@@ -1143,7 +1145,6 @@ fn run_tricks(
             DealerRelativePosition::Left | DealerRelativePosition::Right => {
                 other_team_trick_count += 1;
             }
-            _ => panic!("invalid trick winner"),
         }
     }
     (dealer_team_trick_count, other_team_trick_count)

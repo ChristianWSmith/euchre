@@ -159,7 +159,6 @@ pub fn left_player(player: &Position) -> &Position {
         Position::East => return &Position::South,
         Position::South => return &Position::West,
         Position::West => return &Position::North,
-        _ => panic!("invalid position"),
     }
 }
 

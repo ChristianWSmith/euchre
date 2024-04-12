@@ -1,4 +1,3 @@
-use rand::prelude::*;
 use std::mem;
 use std::thread;
 
@@ -6,10 +5,7 @@ mod euchre;
 
 mod neural_network;
 use neural_network::*;
-use strum::EnumCount;
 
-use crate::euchre::enums::ActionIndex;
-use crate::euchre::enums::StateIndex;
 use crate::euchre::game::play_euchre;
 
 fn main() {

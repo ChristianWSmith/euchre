@@ -2,6 +2,15 @@ use super::{constants::*, enums::*, types::*};
 use crate::{AvailableActions, NeuralNetworkInput};
 use strum::EnumCount;
 
+pub fn set_trump_suit(input: &mut NeuralNetworkInput, trump_suit: &Suit) {
+    match *trump_suit {
+        Suit::Spade => input[StateIndex::TrumpSuitSpade as usize] = 1.0,
+        Suit::Heart => input[StateIndex::TrumpSuitHeart as usize] = 1.0,
+        Suit::Diamond => input[StateIndex::TrumpSuitDiamond as usize] = 1.0,
+        Suit::Club => input[StateIndex::TrumpSuitClub as usize] = 1.0,
+    }
+}
+
 pub fn get_play_available_actions(
     hand: &[Option<Card>; 6],
     lead_suit: &Option<Suit>,
@@ -87,7 +96,6 @@ pub fn get_play_available_actions(
                     }
                     CARD_CLUB_KING => available_actions[ActionIndex::PlayClubKing as usize] = true,
                     CARD_CLUB_ACE => available_actions[ActionIndex::PlayClubAce as usize] = true,
-                    _ => panic!("invalid card"),
                 }
             }
             _ => {}
@@ -1485,7 +1493,6 @@ pub fn get_discard_available_actions(hand: &[Option<Card>; 6]) -> AvailableActio
             Some(CARD_CLUB_KING) => available_actions[ActionIndex::DiscardClubKing as usize] = true,
             Some(CARD_CLUB_ACE) => available_actions[ActionIndex::DiscardClubAce as usize] = true,
             None => {}
-            _ => panic!("invalid card"),
         }
     }
     available_actions
@@ -1693,7 +1700,6 @@ pub fn set_upcard(input: &mut NeuralNetworkInput, card: &Card) {
         CARD_CLUB_QUEEN => input[StateIndex::UpcardClubQueen as usize] = 1.0,
         CARD_CLUB_KING => input[StateIndex::UpcardClubKing as usize] = 1.0,
         CARD_CLUB_ACE => input[StateIndex::UpcardClubAce as usize] = 1.0,
-        _ => panic!("invalid card"),
     }
 }
 
@@ -1729,7 +1735,6 @@ pub fn set_hand(input: &mut NeuralNetworkInput, hand: &[Option<Card>; 6]) {
             Some(CARD_CLUB_KING) => input[StateIndex::HandClubKing as usize] = 1.0,
             Some(CARD_CLUB_ACE) => input[StateIndex::HandClubAce as usize] = 1.0,
             None => {}
-            _ => panic!("invalid card"),
         }
     }
 }
@@ -1774,7 +1779,6 @@ pub fn set_dealer(input: &mut NeuralNetworkInput, relative_position: &RelativePo
         RelativePosition::Left => input[StateIndex::DealerLeft as usize] = 1.0,
         RelativePosition::Ally => input[StateIndex::DealerAlly as usize] = 1.0,
         RelativePosition::Right => input[StateIndex::DealerRight as usize] = 1.0,
-        _ => panic!("invalid relative position"),
     }
 }
 

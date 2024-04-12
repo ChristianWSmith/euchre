@@ -64,13 +64,6 @@ pub enum Suit {
     Club,
 }
 
-impl Suit {
-    pub fn from_usize(x: usize) -> Suit {
-        let y: Suit = unsafe { ::std::mem::transmute(x) };
-        y
-    }
-}
-
 #[derive(EnumCountMacro, Debug, Copy, Clone, PartialEq)]
 #[repr(usize)]
 pub enum Rank {
@@ -82,14 +75,6 @@ pub enum Rank {
     Ace,
 }
 
-impl Rank {
-    pub fn from_usize(x: usize) -> Rank {
-        let y: Rank = unsafe { ::std::mem::transmute(x) };
-        y
-    }
-}
-
-#[allow(dead_code)] // TODO: remove this to ensure all are used
 #[derive(EnumCountMacro, Debug)]
 #[repr(usize)]
 pub enum ActionIndex {
@@ -162,7 +147,6 @@ impl ActionIndex {
     }
 }
 
-#[allow(dead_code)] // TODO: remove this to ensure all are used
 #[derive(EnumCountMacro)]
 #[repr(usize)]
 pub enum StateIndex {
