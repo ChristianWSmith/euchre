@@ -11,7 +11,7 @@ use crate::euchre::game::play_euchre;
 fn main() {
     // number of max simultaneously extant networks times 2
     const NUM_NETWORKS: usize = 4;
-    let stack_size: usize = mem::size_of::<NeuralNetwork>() * NUM_NETWORKS * 2;
+    let stack_size: usize = mem::size_of::<NeuralNetwork>() * (NUM_NETWORKS + 2);
 
     // Spawn a thread with custom stack size
     let handle = thread::Builder::new()
