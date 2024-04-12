@@ -3,10 +3,10 @@ use std::thread;
 
 mod euchre;
 
-mod neural_network;
-use neural_network::*;
+mod organism;
 
 use crate::euchre::game::play_euchre;
+use crate::organism::neural_network::NeuralNetwork;
 
 fn main() {
     // number of max simultaneously extant networks times 2

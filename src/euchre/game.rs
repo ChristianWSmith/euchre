@@ -1,5 +1,6 @@
+use crate::organism::neural_network::*;
+
 use super::{constants::*, enums::*, game_helpers::*, neural_network_helpers::*, types::*};
-use crate::{AvailableActions, NeuralNetwork, NeuralNetworkInput};
 use rand::Rng;
 use strum::EnumCount;
 

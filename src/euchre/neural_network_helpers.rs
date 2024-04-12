@@ -1,5 +1,5 @@
 use super::{constants::*, enums::*, types::*};
-use crate::{AvailableActions, NeuralNetworkInput};
+use crate::organism::neural_network::*;
 use strum::EnumCount;
 
 pub fn set_trump_suit(input: &mut NeuralNetworkInput, trump_suit: &Suit) {
