@@ -2,14 +2,73 @@ use super::{constants::*, enums::*, types::*};
 use rand::seq::SliceRandom;
 use strum::EnumCount;
 
-// TODO: unstub
+fn adjust_card_suit(card: &Card, trump_suit: &Suit) -> Suit {
+    match (card.rank, card.suit, trump_suit) {
+        (Rank::Jack, Suit::Spade, Suit::Club)
+        | (Rank::Jack, Suit::Club, Suit::Spade)
+        | (Rank::Jack, Suit::Diamond, Suit::Heart)
+        | (Rank::Jack, Suit::Heart, Suit::Diamond) => return *trump_suit,
+        _ => return card.suit,
+    }
+}
+
 pub fn card_wins(
     card: &Card,
     winning_card: &Option<Card>,
     lead_suit: &Option<Suit>,
     trump_suit: &Suit,
 ) -> bool {
-    return false;
+    match (winning_card, lead_suit) {
+        (Some(winning_card), Some(lead_suit)) => {
+            let adjusted_card_suit = adjust_card_suit(card, trump_suit);
+            let adjusted_winning_card_suit = adjust_card_suit(winning_card, trump_suit);
+            if adjusted_card_suit != *trump_suit && adjusted_card_suit != *lead_suit {
+                return false;
+            }
+            if adjusted_winning_card_suit == *trump_suit {
+                if adjusted_card_suit != *trump_suit {
+                    return false;
+                }
+                // trump suit vs trump suit
+                match (card.rank, winning_card.rank) {
+                    (Rank::Jack, Rank::Jack) => return card.suit == *trump_suit,
+                    (Rank::Jack, _)
+                    | (Rank::Ace, Rank::King)
+                    | (Rank::Ace, Rank::Queen)
+                    | (Rank::Ace, Rank::Ten)
+                    | (Rank::Ace, Rank::Nine)
+                    | (Rank::King, Rank::Queen)
+                    | (Rank::King, Rank::Ten)
+                    | (Rank::King, Rank::Nine)
+                    | (Rank::Queen, Rank::Ten)
+                    | (Rank::Queen, Rank::Nine)
+                    | (Rank::Ten, Rank::Nine) => return true,
+                    _ => return false,
+                }
+            } else if adjusted_winning_card_suit == *lead_suit {
+                if adjusted_card_suit == *trump_suit {
+                    return true;
+                }
+                // lead suit vs lead suit
+                match (card.rank, winning_card.rank) {
+                    (Rank::Ace, _)
+                    | (Rank::King, Rank::Queen)
+                    | (Rank::King, Rank::Jack)
+                    | (Rank::King, Rank::Ten)
+                    | (Rank::King, Rank::Nine)
+                    | (Rank::Queen, Rank::Jack)
+                    | (Rank::Queen, Rank::Ten)
+                    | (Rank::Queen, Rank::Nine)
+                    | (Rank::Jack, Rank::Ten)
+                    | (Rank::Jack, Rank::Nine)
+                    | (Rank::Ten, Rank::Nine) => return true,
+                    _ => return false,
+                }
+            }
+            panic!("invalid winning card")
+        }
+        _ => return true,
+    }
 }
 
 pub fn play_from_hand(hand: &mut [Option<Card>; 6], action: &ActionIndex) -> Card {
