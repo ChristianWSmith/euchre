@@ -1,5 +1,7 @@
 use lazy_static::lazy_static;
 use rand::prelude::*;
+use std::fs::File;
+use std::io::{Read, Write};
 use strum::EnumCount;
 
 use crate::euchre::enums::{ActionIndex, StateIndex};
@@ -19,6 +21,8 @@ lazy_static! {
     };
 }
 
+#[derive(PartialEq, Debug)]
+#[repr(C)]
 pub struct NeuralNetwork {
     weights_input_hidden: [[f64; HIDDEN_NODES]; StateIndex::COUNT],
     weights_hidden_output: [[f64; ActionIndex::COUNT]; HIDDEN_NODES],
@@ -140,5 +144,38 @@ impl NeuralNetwork {
             }
         }
         panic!("No available actions!")
+    }
+
+    fn to_bytes(&self) -> &[u8] {
+        // Get the raw bytes of the struct
+        let raw_bytes: &[u8] = unsafe {
+            std::slice::from_raw_parts(
+                self as *const _ as *const u8,
+                std::mem::size_of::<NeuralNetwork>(),
+            )
+        };
+        raw_bytes
+    }
+
+    fn from_bytes(bytes: &[u8]) -> NeuralNetwork {
+        assert_eq!(bytes.len(), std::mem::size_of::<NeuralNetwork>());
+        unsafe { std::ptr::read(bytes.as_ptr() as *const NeuralNetwork) }
+    }
+
+    pub fn save_to_file(&self, filename: &str) -> std::io::Result<()> {
+        let mut file = File::create(filename)?;
+        let bytes = self.to_bytes();
+        file.write_all(&bytes)?;
+        Ok(())
+    }
+
+    pub fn load_from_file(&mut self, filename: &str) -> std::io::Result<()> {
+        let mut file = File::open(filename)?;
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes)?;
+        let in_network = NeuralNetwork::from_bytes(&bytes);
+        self.weights_input_hidden = in_network.weights_input_hidden;
+        self.weights_hidden_output = in_network.weights_hidden_output;
+        Ok(())
     }
 }
