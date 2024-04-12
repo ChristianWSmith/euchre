@@ -126,11 +126,8 @@ fn run_round(
     position_2_input: &mut NeuralNetworkInput,
     position_3_input: &mut NeuralNetworkInput,
 ) -> (u8, u8) {
-    let (hands, upcard): ([[Option<Card>; 6]; 4], Card) = deal();
-    let mut dealer_hand = hands[0];
-    let mut position_1_hand = hands[1];
-    let mut position_2_hand = hands[2];
-    let mut position_3_hand = hands[3];
+    let (mut dealer_hand, mut position_1_hand, mut position_2_hand, mut position_3_hand, upcard) =
+        deal();
     set_hand(dealer_input, &dealer_hand);
     set_hand(position_1_input, &position_1_hand);
     set_hand(position_2_input, &position_2_hand);
@@ -159,7 +156,7 @@ fn run_round(
     if making_team.is_some() {
         trump_suit = Some(upcard.suit);
         dealer_hand[5] = Some(upcard);
-        run_discard(dealer_player, dealer_input, &dealer_hand);
+        run_discard(dealer_player, dealer_input, &mut dealer_hand);
     } else {
         (
             making_team,
@@ -378,11 +375,14 @@ fn get_bid_upcard_action(
     }
 }
 
-fn run_discard(player: &NeuralNetwork, input: &mut NeuralNetworkInput, hand: &[Option<Card>; 6]) {
-    discard(
-        input,
-        &player.get_action(input, &get_discard_available_actions(hand)),
-    );
+fn run_discard(
+    player: &NeuralNetwork,
+    input: &mut NeuralNetworkInput,
+    hand: &mut [Option<Card>; 6],
+) {
+    let action = player.get_action(input, &get_discard_available_actions(hand));
+    set_discarded(input, &action);
+    discard_from_hand(hand, &action);
 }
 
 fn run_bid_suit(
@@ -1020,6 +1020,7 @@ fn run_tricks(
         );
         lead = match lead {
             DealerRelativePosition::Dealer => run_trick(
+                &DealerRelativePosition::Dealer,
                 dealer_player,
                 position_1_player,
                 position_2_player,
@@ -1040,6 +1041,7 @@ fn run_tricks(
                 &trick_index,
             ),
             DealerRelativePosition::Left => run_trick(
+                &DealerRelativePosition::Left,
                 position_1_player,
                 position_2_player,
                 position_3_player,
@@ -1060,6 +1062,7 @@ fn run_tricks(
                 &trick_index,
             ),
             DealerRelativePosition::Ally => run_trick(
+                &DealerRelativePosition::Ally,
                 position_2_player,
                 position_3_player,
                 dealer_player,
@@ -1080,6 +1083,7 @@ fn run_tricks(
                 &trick_index,
             ),
             DealerRelativePosition::Right => run_trick(
+                &DealerRelativePosition::Right,
                 position_3_player,
                 dealer_player,
                 position_1_player,
@@ -1140,6 +1144,7 @@ fn run_tricks(
 }
 
 fn run_trick(
+    lead_position_relative_to_dealer: &DealerRelativePosition,
     lead_player: &NeuralNetwork,
     position_1_player: &NeuralNetwork,
     position_2_player: &NeuralNetwork,
@@ -1159,5 +1164,5 @@ fn run_trick(
     trump_suit: &Suit,
     trick_index: &u8,
 ) -> DealerRelativePosition {
-    DealerRelativePosition::Dealer
+    DealerRelativePosition::Left
 }

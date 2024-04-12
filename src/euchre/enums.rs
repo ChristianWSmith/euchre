@@ -1,5 +1,11 @@
 use strum_macros::EnumCount as EnumCountMacro;
 
+pub enum LeadRelativePosition {
+    Lead,
+    Left,
+    Ally,
+    Right,
+}
 pub enum DealerRelativePosition {
     Dealer,
     Left,

@@ -344,7 +344,7 @@ pub fn set_hand(input: &mut NeuralNetworkInput, hand: &[Option<Card>; 6]) {
     }
 }
 
-pub fn discard(input: &mut NeuralNetworkInput, action: &ActionIndex) {
+pub fn set_discarded(input: &mut NeuralNetworkInput, action: &ActionIndex) {
     match *action {
         // Spade
         ActionIndex::DiscardSpadeNine => input[StateIndex::HandSpadeNine as usize] = 0.0,
