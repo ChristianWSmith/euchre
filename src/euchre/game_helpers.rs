@@ -2,6 +2,52 @@ use super::{constants::*, enums::*, types::*};
 use rand::seq::SliceRandom;
 use strum::EnumCount;
 
+// TODO: unstub
+pub fn card_wins(card: &Card, winning_card: &Option<Card>, trump_suit: &Suit) -> bool {
+    return false;
+}
+
+pub fn play_from_hand(hand: &mut [Option<Card>; 6], action: &ActionIndex) -> Card {
+    let selected_card = match &action {
+        // Spade
+        ActionIndex::PlaySpadeNine => CARD_SPADE_NINE,
+        ActionIndex::PlaySpadeTen => CARD_SPADE_TEN,
+        ActionIndex::PlaySpadeJack => CARD_SPADE_JACK,
+        ActionIndex::PlaySpadeQueen => CARD_SPADE_QUEEN,
+        ActionIndex::PlaySpadeKing => CARD_SPADE_KING,
+        ActionIndex::PlaySpadeAce => CARD_SPADE_ACE,
+        // Heart
+        ActionIndex::PlayHeartNine => CARD_HEART_NINE,
+        ActionIndex::PlayHeartTen => CARD_HEART_TEN,
+        ActionIndex::PlayHeartJack => CARD_HEART_JACK,
+        ActionIndex::PlayHeartQueen => CARD_HEART_QUEEN,
+        ActionIndex::PlayHeartKing => CARD_HEART_KING,
+        ActionIndex::PlayHeartAce => CARD_HEART_ACE,
+        // Diamond
+        ActionIndex::PlayDiamondNine => CARD_DIAMOND_NINE,
+        ActionIndex::PlayDiamondTen => CARD_DIAMOND_TEN,
+        ActionIndex::PlayDiamondJack => CARD_DIAMOND_JACK,
+        ActionIndex::PlayDiamondQueen => CARD_DIAMOND_QUEEN,
+        ActionIndex::PlayDiamondKing => CARD_DIAMOND_KING,
+        ActionIndex::PlayDiamondAce => CARD_DIAMOND_ACE,
+        // Club
+        ActionIndex::PlayClubNine => CARD_CLUB_NINE,
+        ActionIndex::PlayClubTen => CARD_CLUB_TEN,
+        ActionIndex::PlayClubJack => CARD_CLUB_JACK,
+        ActionIndex::PlayClubQueen => CARD_CLUB_QUEEN,
+        ActionIndex::PlayClubKing => CARD_CLUB_KING,
+        ActionIndex::PlayClubAce => CARD_CLUB_ACE,
+        _ => panic!("invalid play action attempted"),
+    };
+    for i in 0..hand.len() {
+        if hand[i].is_some() && hand[i].unwrap() == selected_card {
+            hand[i] = None;
+            return selected_card;
+        }
+    }
+    panic!("tried to play a card that is not in hand")
+}
+
 pub fn discard_from_hand(hand: &mut [Option<Card>; 6], action: &ActionIndex) {
     let selected_card = match &action {
         // Spade

@@ -2,6 +2,39 @@ use super::{constants::*, enums::*, types::*};
 use crate::{AvailableActions, NeuralNetworkInput};
 use strum::EnumCount;
 
+// TODO: unstub
+pub fn get_play_available_actions(
+    hand: &[Option<Card>; 6],
+    lead_suit: &Option<Suit>,
+) -> AvailableActions {
+    let mut available_actions: [bool; ActionIndex::COUNT] = [false; ActionIndex::COUNT];
+    return available_actions;
+}
+
+// TODO: unstub
+pub fn set_trick_lead(
+    input: &mut NeuralNetworkInput,
+    relative_position: &RelativePosition,
+    trick_index: &u8,
+) {
+}
+
+// TODO: unstub
+pub fn set_trick_lead_suit(
+    input: &mut NeuralNetworkInput,
+    lead_suit: &Option<Suit>,
+    trick_index: &u8,
+) {
+}
+
+// TODO: unstub
+pub fn set_trick_card_played(
+    input: &mut NeuralNetworkInput,
+    trick_index: &u8,
+    trick_card_index: &u8,
+) {
+}
+
 pub fn set_trick_count(
     input: &mut NeuralNetworkInput,
     ally_trick_count: u8,

@@ -194,10 +194,10 @@ fn run_round(
         &mut position_1_hand,
         &mut position_2_hand,
         &mut position_3_hand,
-        skip_dealer,
-        skip_position_1,
-        skip_position_2,
-        skip_position_3,
+        &skip_dealer,
+        &skip_position_1,
+        &skip_position_2,
+        &skip_position_3,
         &trump_suit.unwrap(),
     );
 
@@ -985,10 +985,10 @@ fn run_tricks(
     position_1_hand: &mut [Option<Card>; 6],
     position_2_hand: &mut [Option<Card>; 6],
     position_3_hand: &mut [Option<Card>; 6],
-    skip_dealer: bool,
-    skip_position_1: bool,
-    skip_position_2: bool,
-    skip_position_3: bool,
+    skip_dealer: &bool,
+    skip_position_1: &bool,
+    skip_position_2: &bool,
+    skip_position_3: &bool,
     trump_suit: &Suit,
 ) -> (u8, u8) {
     let (mut dealer_team_trick_count, mut other_team_trick_count): (u8, u8) = (0, 0);
@@ -1033,10 +1033,10 @@ fn run_tricks(
                 position_1_hand,
                 position_2_hand,
                 position_3_hand,
-                skip_dealer,
-                skip_position_1,
-                skip_position_2,
-                skip_position_3,
+                &skip_dealer,
+                &skip_position_1,
+                &skip_position_2,
+                &skip_position_3,
                 trump_suit,
                 &trick_index,
             ),
@@ -1054,10 +1054,10 @@ fn run_tricks(
                 position_2_hand,
                 position_3_hand,
                 dealer_hand,
-                skip_position_1,
-                skip_position_2,
-                skip_position_3,
-                skip_dealer,
+                &skip_position_1,
+                &skip_position_2,
+                &skip_position_3,
+                &skip_dealer,
                 trump_suit,
                 &trick_index,
             ),
@@ -1075,10 +1075,10 @@ fn run_tricks(
                 position_3_hand,
                 dealer_hand,
                 position_1_hand,
-                skip_position_2,
-                skip_position_3,
-                skip_dealer,
-                skip_position_1,
+                &skip_position_2,
+                &skip_position_3,
+                &skip_dealer,
+                &skip_position_1,
                 trump_suit,
                 &trick_index,
             ),
@@ -1096,10 +1096,10 @@ fn run_tricks(
                 dealer_hand,
                 position_1_hand,
                 position_2_hand,
-                skip_position_3,
-                skip_dealer,
-                skip_position_1,
-                skip_position_2,
+                &skip_position_3,
+                &skip_dealer,
+                &skip_position_1,
+                &skip_position_2,
                 trump_suit,
                 &trick_index,
             ),
@@ -1157,50 +1157,154 @@ fn run_trick(
     position_1_hand: &mut [Option<Card>; 6],
     position_2_hand: &mut [Option<Card>; 6],
     position_3_hand: &mut [Option<Card>; 6],
-    skip_lead: bool,
-    skip_position_1: bool,
-    skip_position_2: bool,
-    skip_position_3: bool,
+    skip_lead: &bool,
+    skip_position_1: &bool,
+    skip_position_2: &bool,
+    skip_position_3: &bool,
     trump_suit: &Suit,
     trick_index: &u8,
 ) -> DealerRelativePosition {
-    let mut winning_player_lead_relative_position = LeadRelativePosition::Lead;
+    set_trick_lead(lead_input, &RelativePosition::Myself, trick_index);
+    set_trick_lead(position_1_input, &RelativePosition::Right, trick_index);
+    set_trick_lead(position_2_input, &RelativePosition::Ally, trick_index);
+    set_trick_lead(position_3_input, &RelativePosition::Left, trick_index);
 
-    // TODO: play cards
-    // get available actions
-    // get action from player
-    // discard the card from the player's hand
-    // check if that card is winning the trick
-    // update inputs of all players
+    let mut winning_player_lead_relative_position: Option<LeadRelativePosition> = None;
+    let mut lead_suit: Option<Suit> = None;
+    let mut winning_card: Option<Card> = None;
+
+    get_trick_action(
+        lead_player,
+        lead_input,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+        lead_hand,
+        &skip_lead,
+        &mut winning_player_lead_relative_position,
+        &LeadRelativePosition::Lead,
+        &mut winning_card,
+        &mut lead_suit,
+        trump_suit,
+        trick_index,
+        &0,
+    );
+    get_trick_action(
+        position_1_player,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+        lead_input,
+        position_1_hand,
+        &skip_position_1,
+        &mut winning_player_lead_relative_position,
+        &LeadRelativePosition::Left,
+        &mut winning_card,
+        &mut lead_suit,
+        trump_suit,
+        trick_index,
+        &1,
+    );
+    get_trick_action(
+        position_2_player,
+        position_2_input,
+        position_3_input,
+        lead_input,
+        position_1_input,
+        position_2_hand,
+        &skip_position_2,
+        &mut winning_player_lead_relative_position,
+        &LeadRelativePosition::Ally,
+        &mut winning_card,
+        &mut lead_suit,
+        trump_suit,
+        trick_index,
+        &2,
+    );
+    get_trick_action(
+        position_3_player,
+        position_3_input,
+        lead_input,
+        position_1_input,
+        position_2_input,
+        position_3_hand,
+        &skip_position_3,
+        &mut winning_player_lead_relative_position,
+        &LeadRelativePosition::Right,
+        &mut winning_card,
+        &mut lead_suit,
+        trump_suit,
+        trick_index,
+        &3,
+    );
 
     match (
         winning_player_lead_relative_position,
         lead_position_relative_to_dealer,
     ) {
-        (LeadRelativePosition::Lead, DealerRelativePosition::Dealer)
-        | (LeadRelativePosition::Left, DealerRelativePosition::Right)
-        | (LeadRelativePosition::Ally, DealerRelativePosition::Ally)
-        | (LeadRelativePosition::Right, DealerRelativePosition::Left) => {
+        (Some(LeadRelativePosition::Lead), DealerRelativePosition::Dealer)
+        | (Some(LeadRelativePosition::Left), DealerRelativePosition::Right)
+        | (Some(LeadRelativePosition::Ally), DealerRelativePosition::Ally)
+        | (Some(LeadRelativePosition::Right), DealerRelativePosition::Left) => {
             return DealerRelativePosition::Dealer
         }
-        (LeadRelativePosition::Lead, DealerRelativePosition::Left)
-        | (LeadRelativePosition::Left, DealerRelativePosition::Dealer)
-        | (LeadRelativePosition::Ally, DealerRelativePosition::Right)
-        | (LeadRelativePosition::Right, DealerRelativePosition::Ally) => {
+        (Some(LeadRelativePosition::Lead), DealerRelativePosition::Left)
+        | (Some(LeadRelativePosition::Left), DealerRelativePosition::Dealer)
+        | (Some(LeadRelativePosition::Ally), DealerRelativePosition::Right)
+        | (Some(LeadRelativePosition::Right), DealerRelativePosition::Ally) => {
             return DealerRelativePosition::Left
         }
-        (LeadRelativePosition::Lead, DealerRelativePosition::Ally)
-        | (LeadRelativePosition::Left, DealerRelativePosition::Left)
-        | (LeadRelativePosition::Ally, DealerRelativePosition::Dealer)
-        | (LeadRelativePosition::Right, DealerRelativePosition::Right) => {
+        (Some(LeadRelativePosition::Lead), DealerRelativePosition::Ally)
+        | (Some(LeadRelativePosition::Left), DealerRelativePosition::Left)
+        | (Some(LeadRelativePosition::Ally), DealerRelativePosition::Dealer)
+        | (Some(LeadRelativePosition::Right), DealerRelativePosition::Right) => {
             return DealerRelativePosition::Ally
         }
-        (LeadRelativePosition::Lead, DealerRelativePosition::Right)
-        | (LeadRelativePosition::Left, DealerRelativePosition::Ally)
-        | (LeadRelativePosition::Ally, DealerRelativePosition::Left)
-        | (LeadRelativePosition::Right, DealerRelativePosition::Dealer) => {
+        (Some(LeadRelativePosition::Lead), DealerRelativePosition::Right)
+        | (Some(LeadRelativePosition::Left), DealerRelativePosition::Ally)
+        | (Some(LeadRelativePosition::Ally), DealerRelativePosition::Left)
+        | (Some(LeadRelativePosition::Right), DealerRelativePosition::Dealer) => {
             return DealerRelativePosition::Right
         }
         _ => panic!("impossible lead/dealer relative position pairing"),
     }
+}
+
+fn get_trick_action(
+    player: &NeuralNetwork,
+    input: &mut NeuralNetworkInput,
+    other_input_1: &mut NeuralNetworkInput,
+    other_input_2: &mut NeuralNetworkInput,
+    other_input_3: &mut NeuralNetworkInput,
+    hand: &mut [Option<Card>; 6],
+    skip: &bool,
+    winning_player_lead_relative_position: &mut Option<LeadRelativePosition>,
+    lead_relative_position: &LeadRelativePosition,
+    winning_card: &mut Option<Card>,
+    lead_suit: &mut Option<Suit>,
+    trump_suit: &Suit,
+    trick_index: &u8,
+    trick_card_index: &u8,
+) {
+    if *skip {
+        return;
+    }
+    let available_actions = get_play_available_actions(hand, &lead_suit);
+    let action = player.get_action(input, &available_actions);
+    let card = play_from_hand(hand, &action);
+    if card_wins(&card, &winning_card, &trump_suit) {
+        *winning_player_lead_relative_position = Some(*lead_relative_position);
+        *winning_card = Some(card);
+    }
+    if lead_suit.is_none() {
+        *lead_suit = Some(card.suit);
+        set_trick_lead_suit(input, &lead_suit, trick_index);
+        set_trick_lead_suit(other_input_1, &lead_suit, trick_index);
+        set_trick_lead_suit(other_input_2, &lead_suit, trick_index);
+        set_trick_lead_suit(other_input_3, &lead_suit, trick_index);
+    }
+    set_trick_card_played(input, trick_index, trick_card_index);
+    set_trick_card_played(other_input_1, trick_index, trick_card_index);
+    set_trick_card_played(other_input_2, trick_index, trick_card_index);
+    set_trick_card_played(other_input_3, trick_index, trick_card_index);
 }

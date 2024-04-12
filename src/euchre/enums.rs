@@ -1,5 +1,6 @@
 use strum_macros::EnumCount as EnumCountMacro;
 
+#[derive(Clone, Copy)]
 pub enum LeadRelativePosition {
     Lead,
     Left,
