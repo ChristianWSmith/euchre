@@ -97,12 +97,62 @@ pub fn get_play_available_actions(
     return available_actions;
 }
 
-// TODO: unstub
 pub fn set_trick_lead(
     input: &mut NeuralNetworkInput,
     relative_position: &RelativePosition,
     trick_index: &TrickIndex,
 ) {
+    match (relative_position, trick_index) {
+        (RelativePosition::Myself, TrickIndex::First) => {
+            input[StateIndex::Trick1MyselfLead as usize] = 1.0
+        }
+        (RelativePosition::Myself, TrickIndex::Second) => {
+            input[StateIndex::Trick2MyselfLead as usize] = 1.0
+        }
+        (RelativePosition::Myself, TrickIndex::Third) => {
+            input[StateIndex::Trick3MyselfLead as usize] = 1.0
+        }
+        (RelativePosition::Myself, TrickIndex::Fourth) => {
+            input[StateIndex::Trick4MyselfLead as usize] = 1.0
+        }
+        (RelativePosition::Left, TrickIndex::First) => {
+            input[StateIndex::Trick1LeftLead as usize] = 1.0
+        }
+        (RelativePosition::Left, TrickIndex::Second) => {
+            input[StateIndex::Trick2LeftLead as usize] = 1.0
+        }
+        (RelativePosition::Left, TrickIndex::Third) => {
+            input[StateIndex::Trick3LeftLead as usize] = 1.0
+        }
+        (RelativePosition::Left, TrickIndex::Fourth) => {
+            input[StateIndex::Trick4LeftLead as usize] = 1.0
+        }
+        (RelativePosition::Ally, TrickIndex::First) => {
+            input[StateIndex::Trick1AllyLead as usize] = 1.0
+        }
+        (RelativePosition::Ally, TrickIndex::Second) => {
+            input[StateIndex::Trick2AllyLead as usize] = 1.0
+        }
+        (RelativePosition::Ally, TrickIndex::Third) => {
+            input[StateIndex::Trick3AllyLead as usize] = 1.0
+        }
+        (RelativePosition::Ally, TrickIndex::Fourth) => {
+            input[StateIndex::Trick4AllyLead as usize] = 1.0
+        }
+        (RelativePosition::Right, TrickIndex::First) => {
+            input[StateIndex::Trick1RightLead as usize] = 1.0
+        }
+        (RelativePosition::Right, TrickIndex::Second) => {
+            input[StateIndex::Trick2RightLead as usize] = 1.0
+        }
+        (RelativePosition::Right, TrickIndex::Third) => {
+            input[StateIndex::Trick3RightLead as usize] = 1.0
+        }
+        (RelativePosition::Right, TrickIndex::Fourth) => {
+            input[StateIndex::Trick4RightLead as usize] = 1.0
+        }
+        _ => panic!("invalid relative position and trick index combination"),
+    }
 }
 
 pub fn set_trick_lead_suit(
