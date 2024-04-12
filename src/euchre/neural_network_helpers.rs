@@ -2,6 +2,14 @@ use super::{constants::*, enums::*, types::*};
 use crate::{AvailableActions, NeuralNetworkInput};
 use strum::EnumCount;
 
+pub fn set_trick_count(
+    input: &mut NeuralNetworkInput,
+    ally_trick_count: u8,
+    enemy_trick_count: u8,
+    set_to_value: f64,
+) {
+}
+
 pub fn get_bid_suit_available_actions(suit: &Suit) -> AvailableActions {
     let mut available_actions: [bool; ActionIndex::COUNT] = [false; ActionIndex::COUNT];
     available_actions[ActionIndex::PassSuit as usize] = true;

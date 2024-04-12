@@ -2,6 +2,10 @@ use super::{constants::*, enums::*, types::*};
 use rand::seq::SliceRandom;
 use strum::EnumCount;
 
+pub fn get_trick_winner() -> RelativePosition {
+    RelativePosition::Myself
+}
+
 pub fn left_player(player: &Position) -> &Position {
     match player {
         Position::North => return &Position::East,

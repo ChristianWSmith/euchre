@@ -972,7 +972,6 @@ fn get_bid_suit_action(
     }
 }
 
-// TODO: unstub
 fn run_tricks(
     dealer_player: &NeuralNetwork,
     position_1_player: &NeuralNetwork,
@@ -992,5 +991,173 @@ fn run_tricks(
     skip_position_3: bool,
     trump_suit: &Suit,
 ) -> (u8, u8) {
-    (0, 0)
+    let (mut dealer_team_trick_count, mut other_team_trick_count): (u8, u8) = (0, 0);
+    let mut lead = DealerRelativePosition::Left;
+    for trick_index in 0..5 {
+        set_trick_count(
+            dealer_input,
+            dealer_team_trick_count,
+            other_team_trick_count,
+            1.0,
+        );
+        set_trick_count(
+            position_1_input,
+            other_team_trick_count,
+            dealer_team_trick_count,
+            1.0,
+        );
+        set_trick_count(
+            position_2_input,
+            dealer_team_trick_count,
+            other_team_trick_count,
+            1.0,
+        );
+        set_trick_count(
+            position_3_input,
+            other_team_trick_count,
+            dealer_team_trick_count,
+            1.0,
+        );
+        lead = match lead {
+            DealerRelativePosition::Dealer => run_trick(
+                dealer_player,
+                position_1_player,
+                position_2_player,
+                position_3_player,
+                dealer_input,
+                position_1_input,
+                position_2_input,
+                position_3_input,
+                dealer_hand,
+                position_1_hand,
+                position_2_hand,
+                position_3_hand,
+                skip_dealer,
+                skip_position_1,
+                skip_position_2,
+                skip_position_3,
+                trump_suit,
+                &trick_index,
+            ),
+            DealerRelativePosition::Left => run_trick(
+                position_1_player,
+                position_2_player,
+                position_3_player,
+                dealer_player,
+                position_1_input,
+                position_2_input,
+                position_3_input,
+                dealer_input,
+                position_1_hand,
+                position_2_hand,
+                position_3_hand,
+                dealer_hand,
+                skip_position_1,
+                skip_position_2,
+                skip_position_3,
+                skip_dealer,
+                trump_suit,
+                &trick_index,
+            ),
+            DealerRelativePosition::Ally => run_trick(
+                position_2_player,
+                position_3_player,
+                dealer_player,
+                position_1_player,
+                position_2_input,
+                position_3_input,
+                dealer_input,
+                position_1_input,
+                position_2_hand,
+                position_3_hand,
+                dealer_hand,
+                position_1_hand,
+                skip_position_2,
+                skip_position_3,
+                skip_dealer,
+                skip_position_1,
+                trump_suit,
+                &trick_index,
+            ),
+            DealerRelativePosition::Right => run_trick(
+                position_3_player,
+                dealer_player,
+                position_1_player,
+                position_2_player,
+                position_3_input,
+                dealer_input,
+                position_1_input,
+                position_2_input,
+                position_3_hand,
+                dealer_hand,
+                position_1_hand,
+                position_2_hand,
+                skip_position_3,
+                skip_dealer,
+                skip_position_1,
+                skip_position_2,
+                trump_suit,
+                &trick_index,
+            ),
+            _ => panic!("invalid trick winner"),
+        };
+
+        set_trick_count(
+            dealer_input,
+            dealer_team_trick_count,
+            other_team_trick_count,
+            0.0,
+        );
+        set_trick_count(
+            position_1_input,
+            other_team_trick_count,
+            dealer_team_trick_count,
+            0.0,
+        );
+        set_trick_count(
+            position_2_input,
+            dealer_team_trick_count,
+            other_team_trick_count,
+            0.0,
+        );
+        set_trick_count(
+            position_3_input,
+            other_team_trick_count,
+            dealer_team_trick_count,
+            0.0,
+        );
+        match lead {
+            DealerRelativePosition::Dealer | DealerRelativePosition::Ally => {
+                dealer_team_trick_count += 1;
+            }
+            DealerRelativePosition::Left | DealerRelativePosition::Right => {
+                other_team_trick_count += 1;
+            }
+            _ => panic!("invalid trick winner"),
+        }
+    }
+    (dealer_team_trick_count, other_team_trick_count)
+}
+
+fn run_trick(
+    lead_player: &NeuralNetwork,
+    position_1_player: &NeuralNetwork,
+    position_2_player: &NeuralNetwork,
+    position_3_player: &NeuralNetwork,
+    lead_input: &mut NeuralNetworkInput,
+    position_1_input: &mut NeuralNetworkInput,
+    position_2_input: &mut NeuralNetworkInput,
+    position_3_input: &mut NeuralNetworkInput,
+    lead_hand: &mut [Option<Card>; 6],
+    position_1_hand: &mut [Option<Card>; 6],
+    position_2_hand: &mut [Option<Card>; 6],
+    position_3_hand: &mut [Option<Card>; 6],
+    skip_lead: bool,
+    skip_position_1: bool,
+    skip_position_2: bool,
+    skip_position_3: bool,
+    trump_suit: &Suit,
+    trick_index: &u8,
+) -> DealerRelativePosition {
+    DealerRelativePosition::Dealer
 }
