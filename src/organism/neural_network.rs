@@ -26,16 +26,22 @@ lazy_static! {
 pub struct NeuralNetwork {
     weights_input_hidden: [[f64; HIDDEN_NODES]; StateIndex::COUNT],
     weights_hidden_output: [[f64; ActionIndex::COUNT]; HIDDEN_NODES],
+    connections_input_hidden: [[bool; HIDDEN_NODES]; StateIndex::COUNT],
+    connections_hidden_output: [[bool; ActionIndex::COUNT]; HIDDEN_NODES],
 }
 
 impl NeuralNetwork {
     pub fn new() -> Self {
         let weights_input_hidden = [[0.0; HIDDEN_NODES]; StateIndex::COUNT];
         let weights_hidden_output = [[0.0; ActionIndex::COUNT]; HIDDEN_NODES];
+        let connections_input_hidden = [[true; HIDDEN_NODES]; StateIndex::COUNT];
+        let connections_hidden_output = [[true; ActionIndex::COUNT]; HIDDEN_NODES];
 
         NeuralNetwork {
             weights_input_hidden,
             weights_hidden_output,
+            connections_input_hidden,
+            connections_hidden_output,
         }
     }
 
@@ -44,11 +50,15 @@ impl NeuralNetwork {
         for i in 0..StateIndex::COUNT {
             for j in 0..HIDDEN_NODES {
                 self.weights_input_hidden[i][j] = rng.gen_range(-0.5..0.5);
+                // TODO: configurable connection rate
+                self.connections_input_hidden[i][j] = rng.gen::<f64>() < 0.5;
             }
         }
         for i in 0..HIDDEN_NODES {
             for j in 0..ActionIndex::COUNT {
                 self.weights_hidden_output[i][j] = rng.gen_range(-0.5..0.5);
+                // TODO: configurable connection rate
+                self.connections_hidden_output[i][j] = rng.gen::<f64>() < 0.5;
             }
         }
     }
@@ -73,6 +83,11 @@ impl NeuralNetwork {
                 } else {
                     child.weights_input_hidden[i][j] = partner.weights_input_hidden[i][j];
                 }
+                if rng.gen::<f64>() < 0.5 {
+                    child.connections_input_hidden[i][j] = self.connections_input_hidden[i][j];
+                } else {
+                    child.connections_input_hidden[i][j] = partner.connections_input_hidden[i][j];
+                }
             }
         }
 
@@ -82,6 +97,11 @@ impl NeuralNetwork {
                     child.weights_hidden_output[i][j] = self.weights_hidden_output[i][j];
                 } else {
                     child.weights_hidden_output[i][j] = partner.weights_hidden_output[i][j];
+                }
+                if rng.gen::<f64>() < 0.5 {
+                    child.connections_hidden_output[i][j] = self.connections_hidden_output[i][j];
+                } else {
+                    child.connections_hidden_output[i][j] = partner.connections_hidden_output[i][j];
                 }
             }
         }
@@ -93,6 +113,10 @@ impl NeuralNetwork {
                     child.weights_input_hidden[i][j] +=
                         rng.gen_range(-mutation_magnitude..mutation_magnitude);
                 }
+                // TODO: structural mutation rate
+                if rng.gen::<f64>() < mutation_rate {
+                    child.connections_input_hidden[i][j] = !child.connections_input_hidden[i][j];
+                }
             }
         }
         for i in 0..HIDDEN_NODES {
@@ -100,6 +124,10 @@ impl NeuralNetwork {
                 if rng.gen::<f64>() < mutation_rate {
                     child.weights_hidden_output[i][j] +=
                         rng.gen_range(-mutation_magnitude..mutation_magnitude);
+                }
+                // TODO: structural mutation rate
+                if rng.gen::<f64>() < mutation_rate {
+                    child.connections_hidden_output[i][j] = !child.connections_hidden_output[i][j];
                 }
             }
         }
@@ -114,7 +142,9 @@ impl NeuralNetwork {
         for i in 0..HIDDEN_NODES {
             let mut sum = 0.0;
             for j in 0..StateIndex::COUNT {
-                sum += inputs[j] * self.weights_input_hidden[j][i];
+                if self.connections_input_hidden[j][i] {
+                    sum += inputs[j] * self.weights_input_hidden[j][i];
+                }
             }
             hidden_outputs[i] = NeuralNetwork::sigmoid(sum);
         }
@@ -122,7 +152,9 @@ impl NeuralNetwork {
         for i in 0..ActionIndex::COUNT {
             let mut sum = 0.0;
             for j in 0..HIDDEN_NODES {
-                sum += hidden_outputs[j] * self.weights_hidden_output[j][i];
+                if self.connections_hidden_output[j][i] {
+                    sum += hidden_outputs[j] * self.weights_hidden_output[j][i];
+                }
             }
             final_outputs[i] = NeuralNetwork::sigmoid(sum);
         }
@@ -176,6 +208,8 @@ impl NeuralNetwork {
         let in_network = NeuralNetwork::from_bytes(&bytes);
         self.weights_input_hidden = in_network.weights_input_hidden;
         self.weights_hidden_output = in_network.weights_hidden_output;
+        self.connections_input_hidden = in_network.connections_input_hidden;
+        self.connections_hidden_output = in_network.connections_hidden_output;
         Ok(())
     }
 }

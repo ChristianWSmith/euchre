@@ -1,0 +1,18 @@
+   Compiling euchre v0.1.0 (/home/christian/Programming/euchre)
+warning: method `crossover` is never used
+  --> src/organism/neural_network.rs:70:12
+   |
+33 | impl NeuralNetwork {
+   | ------------------ method in this implementation
+...
+70 |     pub fn crossover(
+   |            ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: `euchre` (bin "euchre") generated 1 warning
+    Finished dev [unoptimized + debuginfo] target(s) in 0.51s
+     Running `target/debug/euchre`
+NorthSouth
+EastWest
+Saving/loading successful
