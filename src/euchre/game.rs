@@ -1167,6 +1167,11 @@ fn run_trick(
     let mut winning_player_lead_relative_position = LeadRelativePosition::Lead;
 
     // TODO: play cards
+    // get available actions
+    // get action from player
+    // discard the card from the player's hand
+    // check if that card is winning the trick
+    // update inputs of all players
 
     match (
         winning_player_lead_relative_position,
