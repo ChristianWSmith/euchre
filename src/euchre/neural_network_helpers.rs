@@ -2,12 +2,98 @@ use super::{constants::*, enums::*, types::*};
 use crate::{AvailableActions, NeuralNetworkInput};
 use strum::EnumCount;
 
-// TODO: unstub
 pub fn get_play_available_actions(
     hand: &[Option<Card>; 6],
     lead_suit: &Option<Suit>,
 ) -> AvailableActions {
     let mut available_actions: [bool; ActionIndex::COUNT] = [false; ActionIndex::COUNT];
+
+    let mut must_follow = false;
+
+    match lead_suit {
+        Some(lead_suit) => {
+            for card in hand {
+                if card.is_some() && card.unwrap().suit == *lead_suit {
+                    must_follow = true;
+                    break;
+                }
+            }
+        }
+        _ => {}
+    }
+
+    for card in hand {
+        match card {
+            Some(card) => {
+                if must_follow && card.suit != lead_suit.unwrap() {
+                    continue;
+                }
+                match *card {
+                    // Spade
+                    CARD_SPADE_NINE => {
+                        available_actions[ActionIndex::PlaySpadeNine as usize] = true
+                    }
+                    CARD_SPADE_TEN => available_actions[ActionIndex::PlaySpadeTen as usize] = true,
+                    CARD_SPADE_JACK => {
+                        available_actions[ActionIndex::PlaySpadeJack as usize] = true
+                    }
+                    CARD_SPADE_QUEEN => {
+                        available_actions[ActionIndex::PlaySpadeQueen as usize] = true
+                    }
+                    CARD_SPADE_KING => {
+                        available_actions[ActionIndex::PlaySpadeKing as usize] = true
+                    }
+                    CARD_SPADE_ACE => available_actions[ActionIndex::PlaySpadeAce as usize] = true,
+                    // Heart
+                    CARD_HEART_NINE => {
+                        available_actions[ActionIndex::PlayHeartNine as usize] = true
+                    }
+                    CARD_HEART_TEN => available_actions[ActionIndex::PlayHeartTen as usize] = true,
+                    CARD_HEART_JACK => {
+                        available_actions[ActionIndex::PlayHeartJack as usize] = true
+                    }
+                    CARD_HEART_QUEEN => {
+                        available_actions[ActionIndex::PlayHeartQueen as usize] = true
+                    }
+                    CARD_HEART_KING => {
+                        available_actions[ActionIndex::PlayHeartKing as usize] = true
+                    }
+                    CARD_HEART_ACE => available_actions[ActionIndex::PlayHeartAce as usize] = true,
+                    // Diamond
+                    CARD_DIAMOND_NINE => {
+                        available_actions[ActionIndex::PlayDiamondNine as usize] = true
+                    }
+                    CARD_DIAMOND_TEN => {
+                        available_actions[ActionIndex::PlayDiamondTen as usize] = true
+                    }
+                    CARD_DIAMOND_JACK => {
+                        available_actions[ActionIndex::PlayDiamondJack as usize] = true
+                    }
+                    CARD_DIAMOND_QUEEN => {
+                        available_actions[ActionIndex::PlayDiamondQueen as usize] = true
+                    }
+                    CARD_DIAMOND_KING => {
+                        available_actions[ActionIndex::PlayDiamondKing as usize] = true
+                    }
+                    CARD_DIAMOND_ACE => {
+                        available_actions[ActionIndex::PlayDiamondAce as usize] = true
+                    }
+                    // Club
+                    CARD_CLUB_NINE => available_actions[ActionIndex::PlayClubNine as usize] = true,
+                    CARD_CLUB_TEN => available_actions[ActionIndex::PlayClubTen as usize] = true,
+                    CARD_CLUB_JACK => available_actions[ActionIndex::PlayClubJack as usize] = true,
+                    CARD_CLUB_QUEEN => {
+                        available_actions[ActionIndex::PlayClubQueen as usize] = true
+                    }
+                    CARD_CLUB_KING => available_actions[ActionIndex::PlayClubKing as usize] = true,
+                    CARD_CLUB_ACE => available_actions[ActionIndex::PlayClubAce as usize] = true,
+                    _ => panic!("invalid card"),
+                }
+            }
+            _ => {}
+        }
+    }
+
     return available_actions;
 }
 
@@ -15,32 +101,97 @@ pub fn get_play_available_actions(
 pub fn set_trick_lead(
     input: &mut NeuralNetworkInput,
     relative_position: &RelativePosition,
-    trick_index: &u8,
+    trick_index: &TrickIndex,
 ) {
 }
 
-// TODO: unstub
 pub fn set_trick_lead_suit(
     input: &mut NeuralNetworkInput,
     lead_suit: &Option<Suit>,
-    trick_index: &u8,
+    trick_index: &TrickIndex,
 ) {
+    match lead_suit {
+        Some(lead_suit) => match (lead_suit, trick_index) {
+            (Suit::Spade, TrickIndex::First) => {
+                input[StateIndex::Trick1LeadSuitSpade as usize] = 1.0
+            }
+            (Suit::Heart, TrickIndex::First) => {
+                input[StateIndex::Trick1LeadSuitHeart as usize] = 1.0
+            }
+            (Suit::Diamond, TrickIndex::First) => {
+                input[StateIndex::Trick1LeadSuitDiamond as usize] = 1.0
+            }
+            (Suit::Club, TrickIndex::First) => input[StateIndex::Trick1LeadSuitClub as usize] = 1.0,
+            (Suit::Spade, TrickIndex::Second) => {
+                input[StateIndex::Trick2LeadSuitSpade as usize] = 1.0
+            }
+            (Suit::Heart, TrickIndex::Second) => {
+                input[StateIndex::Trick2LeadSuitHeart as usize] = 1.0
+            }
+            (Suit::Diamond, TrickIndex::Second) => {
+                input[StateIndex::Trick2LeadSuitDiamond as usize] = 1.0
+            }
+            (Suit::Club, TrickIndex::Second) => {
+                input[StateIndex::Trick2LeadSuitClub as usize] = 1.0
+            }
+            (Suit::Spade, TrickIndex::Third) => {
+                input[StateIndex::Trick3LeadSuitSpade as usize] = 1.0
+            }
+            (Suit::Heart, TrickIndex::Third) => {
+                input[StateIndex::Trick3LeadSuitHeart as usize] = 1.0
+            }
+            (Suit::Diamond, TrickIndex::Third) => {
+                input[StateIndex::Trick3LeadSuitDiamond as usize] = 1.0
+            }
+            (Suit::Club, TrickIndex::Third) => input[StateIndex::Trick3LeadSuitClub as usize] = 1.0,
+            (Suit::Spade, TrickIndex::Fourth) => {
+                input[StateIndex::Trick4LeadSuitSpade as usize] = 1.0
+            }
+            (Suit::Heart, TrickIndex::Fourth) => {
+                input[StateIndex::Trick4LeadSuitHeart as usize] = 1.0
+            }
+            (Suit::Diamond, TrickIndex::Fourth) => {
+                input[StateIndex::Trick4LeadSuitDiamond as usize] = 1.0
+            }
+            (Suit::Club, TrickIndex::Fourth) => {
+                input[StateIndex::Trick4LeadSuitClub as usize] = 1.0
+            }
+            _ => panic!("invalid lead suit and trick index combination"),
+        },
+        _ => return,
+    }
 }
 
 // TODO: unstub
 pub fn set_trick_card_played(
     input: &mut NeuralNetworkInput,
-    trick_index: &u8,
-    trick_card_index: &u8,
+    trick_index: &TrickIndex,
+    trick_card_index: &TrickCardIndex,
 ) {
 }
 
 pub fn set_trick_count(
     input: &mut NeuralNetworkInput,
-    ally_trick_count: u8,
-    enemy_trick_count: u8,
-    set_to_value: f64,
+    ally_trick_count: &u8,
+    enemy_trick_count: &u8,
+    set_to_value: &f64,
 ) {
+    match ally_trick_count {
+        0 => input[StateIndex::AllyTrickCount0 as usize] = *set_to_value,
+        1 => input[StateIndex::AllyTrickCount1 as usize] = *set_to_value,
+        2 => input[StateIndex::AllyTrickCount2 as usize] = *set_to_value,
+        3 => input[StateIndex::AllyTrickCount3 as usize] = *set_to_value,
+        4 => input[StateIndex::AllyTrickCount4 as usize] = *set_to_value,
+        _ => panic!("invalid ally trick count"),
+    }
+    match enemy_trick_count {
+        0 => input[StateIndex::EnemyTrickCount0 as usize] = *set_to_value,
+        1 => input[StateIndex::EnemyTrickCount1 as usize] = *set_to_value,
+        2 => input[StateIndex::EnemyTrickCount2 as usize] = *set_to_value,
+        3 => input[StateIndex::EnemyTrickCount3 as usize] = *set_to_value,
+        4 => input[StateIndex::EnemyTrickCount4 as usize] = *set_to_value,
+        _ => panic!("invalid enemy trick count"),
+    }
 }
 
 pub fn get_bid_suit_available_actions(suit: &Suit) -> AvailableActions {

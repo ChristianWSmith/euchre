@@ -1,5 +1,21 @@
 use strum_macros::EnumCount as EnumCountMacro;
 
+pub enum TrickCardIndex {
+    First,
+    Second,
+    Third,
+    Fourth,
+}
+
+#[derive(PartialEq)]
+pub enum TrickIndex {
+    First,
+    Second,
+    Third,
+    Fourth,
+    Fifth,
+}
+
 #[derive(Clone, Copy)]
 pub enum LeadRelativePosition {
     Lead,

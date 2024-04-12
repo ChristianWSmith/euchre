@@ -993,30 +993,36 @@ fn run_tricks(
 ) -> (u8, u8) {
     let (mut dealer_team_trick_count, mut other_team_trick_count): (u8, u8) = (0, 0);
     let mut lead = DealerRelativePosition::Left;
-    for trick_index in 0..5 {
+    for trick_index in [
+        TrickIndex::First,
+        TrickIndex::Second,
+        TrickIndex::Third,
+        TrickIndex::Fourth,
+        TrickIndex::Fifth,
+    ] {
         set_trick_count(
             dealer_input,
-            dealer_team_trick_count,
-            other_team_trick_count,
-            1.0,
+            &dealer_team_trick_count,
+            &other_team_trick_count,
+            &1.0,
         );
         set_trick_count(
             position_1_input,
-            other_team_trick_count,
-            dealer_team_trick_count,
-            1.0,
+            &other_team_trick_count,
+            &dealer_team_trick_count,
+            &1.0,
         );
         set_trick_count(
             position_2_input,
-            dealer_team_trick_count,
-            other_team_trick_count,
-            1.0,
+            &dealer_team_trick_count,
+            &other_team_trick_count,
+            &1.0,
         );
         set_trick_count(
             position_3_input,
-            other_team_trick_count,
-            dealer_team_trick_count,
-            1.0,
+            &other_team_trick_count,
+            &dealer_team_trick_count,
+            &1.0,
         );
         lead = match lead {
             DealerRelativePosition::Dealer => run_trick(
@@ -1108,27 +1114,27 @@ fn run_tricks(
 
         set_trick_count(
             dealer_input,
-            dealer_team_trick_count,
-            other_team_trick_count,
-            0.0,
+            &dealer_team_trick_count,
+            &other_team_trick_count,
+            &0.0,
         );
         set_trick_count(
             position_1_input,
-            other_team_trick_count,
-            dealer_team_trick_count,
-            0.0,
+            &other_team_trick_count,
+            &dealer_team_trick_count,
+            &0.0,
         );
         set_trick_count(
             position_2_input,
-            dealer_team_trick_count,
-            other_team_trick_count,
-            0.0,
+            &dealer_team_trick_count,
+            &other_team_trick_count,
+            &0.0,
         );
         set_trick_count(
             position_3_input,
-            other_team_trick_count,
-            dealer_team_trick_count,
-            0.0,
+            &other_team_trick_count,
+            &dealer_team_trick_count,
+            &0.0,
         );
         match lead {
             DealerRelativePosition::Dealer | DealerRelativePosition::Ally => {
@@ -1162,12 +1168,14 @@ fn run_trick(
     skip_position_2: &bool,
     skip_position_3: &bool,
     trump_suit: &Suit,
-    trick_index: &u8,
+    trick_index: &TrickIndex,
 ) -> DealerRelativePosition {
-    set_trick_lead(lead_input, &RelativePosition::Myself, trick_index);
-    set_trick_lead(position_1_input, &RelativePosition::Right, trick_index);
-    set_trick_lead(position_2_input, &RelativePosition::Ally, trick_index);
-    set_trick_lead(position_3_input, &RelativePosition::Left, trick_index);
+    if *trick_index != TrickIndex::Fifth {
+        set_trick_lead(lead_input, &RelativePosition::Myself, trick_index);
+        set_trick_lead(position_1_input, &RelativePosition::Right, trick_index);
+        set_trick_lead(position_2_input, &RelativePosition::Ally, trick_index);
+        set_trick_lead(position_3_input, &RelativePosition::Left, trick_index);
+    }
 
     let mut winning_player_lead_relative_position: Option<LeadRelativePosition> = None;
     let mut lead_suit: Option<Suit> = None;
@@ -1187,7 +1195,7 @@ fn run_trick(
         &mut lead_suit,
         trump_suit,
         trick_index,
-        &0,
+        &TrickCardIndex::First,
     );
     get_trick_action(
         position_1_player,
@@ -1203,7 +1211,7 @@ fn run_trick(
         &mut lead_suit,
         trump_suit,
         trick_index,
-        &1,
+        &TrickCardIndex::Second,
     );
     get_trick_action(
         position_2_player,
@@ -1219,7 +1227,7 @@ fn run_trick(
         &mut lead_suit,
         trump_suit,
         trick_index,
-        &2,
+        &TrickCardIndex::Third,
     );
     get_trick_action(
         position_3_player,
@@ -1235,7 +1243,7 @@ fn run_trick(
         &mut lead_suit,
         trump_suit,
         trick_index,
-        &3,
+        &TrickCardIndex::Fourth,
     );
 
     match (
@@ -1283,8 +1291,8 @@ fn get_trick_action(
     winning_card: &mut Option<Card>,
     lead_suit: &mut Option<Suit>,
     trump_suit: &Suit,
-    trick_index: &u8,
-    trick_card_index: &u8,
+    trick_index: &TrickIndex,
+    trick_card_index: &TrickCardIndex,
 ) {
     if *skip {
         return;
@@ -1298,13 +1306,17 @@ fn get_trick_action(
     }
     if lead_suit.is_none() {
         *lead_suit = Some(card.suit);
-        set_trick_lead_suit(input, &lead_suit, trick_index);
-        set_trick_lead_suit(other_input_1, &lead_suit, trick_index);
-        set_trick_lead_suit(other_input_2, &lead_suit, trick_index);
-        set_trick_lead_suit(other_input_3, &lead_suit, trick_index);
+        if *trick_index != TrickIndex::Fifth {
+            set_trick_lead_suit(input, &lead_suit, trick_index);
+            set_trick_lead_suit(other_input_1, &lead_suit, trick_index);
+            set_trick_lead_suit(other_input_2, &lead_suit, trick_index);
+            set_trick_lead_suit(other_input_3, &lead_suit, trick_index);
+        }
     }
-    set_trick_card_played(input, trick_index, trick_card_index);
-    set_trick_card_played(other_input_1, trick_index, trick_card_index);
-    set_trick_card_played(other_input_2, trick_index, trick_card_index);
-    set_trick_card_played(other_input_3, trick_index, trick_card_index);
+    if *trick_index != TrickIndex::Fifth {
+        set_trick_card_played(input, trick_index, trick_card_index);
+        set_trick_card_played(other_input_1, trick_index, trick_card_index);
+        set_trick_card_played(other_input_2, trick_index, trick_card_index);
+        set_trick_card_played(other_input_3, trick_index, trick_card_index);
+    }
 }
