@@ -109,7 +109,11 @@ pub fn play_euchre(
 
         dealer = left_player(dealer);
     }
-    Team::EastWest
+    if north_south_score > east_west_score {
+        Team::NorthSouth
+    } else {
+        Team::EastWest
+    }
 }
 
 fn run_round(
@@ -176,15 +180,29 @@ fn run_round(
             &upcard.suit,
         );
     }
-    if making_team.is_none() {
+    if making_team.is_none() || trump_suit.is_none() {
         return (0, 0);
     }
-    let mut dealer_team_tricks: u8 = 0;
-    let mut other_team_tricks: u8 = 0;
 
-    for _ in 0..5 {
-        run_trick();
-    }
+    let (dealer_team_tricks, other_team_tricks): (u8, u8) = run_tricks(
+        dealer_player,
+        position_1_player,
+        position_2_player,
+        position_3_player,
+        dealer_input,
+        position_1_input,
+        position_2_input,
+        position_3_input,
+        &mut dealer_hand,
+        &mut position_1_hand,
+        &mut position_2_hand,
+        &mut position_3_hand,
+        skip_dealer,
+        skip_position_1,
+        skip_position_2,
+        skip_position_3,
+        &trump_suit.unwrap(),
+    );
 
     match (
         making_team,
@@ -955,4 +973,24 @@ fn get_bid_suit_action(
 }
 
 // TODO: unstub
-fn run_trick() {}
+fn run_tricks(
+    dealer_player: &NeuralNetwork,
+    position_1_player: &NeuralNetwork,
+    position_2_player: &NeuralNetwork,
+    position_3_player: &NeuralNetwork,
+    dealer_input: &mut NeuralNetworkInput,
+    position_1_input: &mut NeuralNetworkInput,
+    position_2_input: &mut NeuralNetworkInput,
+    position_3_input: &mut NeuralNetworkInput,
+    dealer_hand: &mut [Option<Card>; 6],
+    position_1_hand: &mut [Option<Card>; 6],
+    position_2_hand: &mut [Option<Card>; 6],
+    position_3_hand: &mut [Option<Card>; 6],
+    skip_dealer: bool,
+    skip_position_1: bool,
+    skip_position_2: bool,
+    skip_position_3: bool,
+    trump_suit: &Suit,
+) -> (u8, u8) {
+    (0, 0)
+}

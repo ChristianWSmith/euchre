@@ -10,6 +10,7 @@ use strum::EnumCount;
 
 use crate::euchre::enums::ActionIndex;
 use crate::euchre::enums::StateIndex;
+use crate::euchre::game::play_euchre;
 
 fn main() {
     // number of max simultaneously extant networks times 2
@@ -20,29 +21,18 @@ fn main() {
     let handle = thread::Builder::new()
         .stack_size(stack_size)
         .spawn(|| {
-            let mut input: [f64; StateIndex::COUNT] = [0.0; StateIndex::COUNT];
-            let mut rng = rand::thread_rng();
-
-            for i in 0..StateIndex::COUNT {
-                input[i] = rng.gen::<f64>();
-            }
-
-            let mut available_actions: AvailableActions = [false; ActionIndex::COUNT];
-            for i in 0..6 {
-                available_actions[i] = true;
-            }
-
             let mut nn1 = NeuralNetwork::new();
-            nn1.init();
             let mut nn2 = NeuralNetwork::new();
+            let mut nn3 = NeuralNetwork::new();
+            let mut nn4 = NeuralNetwork::new();
+            nn1.init();
             nn2.init();
-
-            let child = nn1.crossover(&nn2, 0.01, 0.1);
-
-            let result1 = nn1.get_action(&input, &available_actions);
-            let result2 = nn2.get_action(&input, &available_actions);
-            let result3 = child.get_action(&input, &available_actions);
-            println!("{:?}\n{:?}\n{:?}", result1, result2, result3);
+            nn3.init();
+            nn4.init();
+            let winning_team = play_euchre(&nn2, &nn1, &nn4, &nn3);
+            println!("{:?}", winning_team);
+            let winning_team = play_euchre(&nn1, &nn2, &nn3, &nn4);
+            println!("{:?}", winning_team);
         })
         .unwrap(); // Handle the Result to check for errors
 

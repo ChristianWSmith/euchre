@@ -19,6 +19,7 @@ pub enum RelativeTeam {
     Other,
 }
 
+#[derive(Debug)]
 pub enum Team {
     NorthSouth,
     EastWest,
