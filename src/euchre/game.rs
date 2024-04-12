@@ -1314,9 +1314,9 @@ fn get_trick_action(
         }
     }
     if *trick_index != TrickIndex::Fifth {
-        set_trick_card_played(input, trick_index, trick_card_index);
-        set_trick_card_played(other_input_1, trick_index, trick_card_index);
-        set_trick_card_played(other_input_2, trick_index, trick_card_index);
-        set_trick_card_played(other_input_3, trick_index, trick_card_index);
+        set_trick_card_played(input, &card, trick_index, trick_card_index);
+        set_trick_card_played(other_input_1, &card, trick_index, trick_card_index);
+        set_trick_card_played(other_input_2, &card, trick_index, trick_card_index);
+        set_trick_card_played(other_input_3, &card, trick_index, trick_card_index);
     }
 }

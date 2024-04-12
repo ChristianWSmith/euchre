@@ -215,6 +215,7 @@ pub fn set_trick_lead_suit(
 // TODO: unstub
 pub fn set_trick_card_played(
     input: &mut NeuralNetworkInput,
+    card: &Card,
     trick_index: &TrickIndex,
     trick_card_index: &TrickCardIndex,
 ) {
