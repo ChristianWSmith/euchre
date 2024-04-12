@@ -1164,5 +1164,38 @@ fn run_trick(
     trump_suit: &Suit,
     trick_index: &u8,
 ) -> DealerRelativePosition {
-    DealerRelativePosition::Left
+    let mut winning_player_lead_relative_position = LeadRelativePosition::Lead;
+
+    // TODO: play cards
+
+    match (
+        winning_player_lead_relative_position,
+        lead_position_relative_to_dealer,
+    ) {
+        (LeadRelativePosition::Lead, DealerRelativePosition::Dealer)
+        | (LeadRelativePosition::Left, DealerRelativePosition::Right)
+        | (LeadRelativePosition::Ally, DealerRelativePosition::Ally)
+        | (LeadRelativePosition::Right, DealerRelativePosition::Left) => {
+            return DealerRelativePosition::Dealer
+        }
+        (LeadRelativePosition::Lead, DealerRelativePosition::Left)
+        | (LeadRelativePosition::Left, DealerRelativePosition::Dealer)
+        | (LeadRelativePosition::Ally, DealerRelativePosition::Right)
+        | (LeadRelativePosition::Right, DealerRelativePosition::Ally) => {
+            return DealerRelativePosition::Left
+        }
+        (LeadRelativePosition::Lead, DealerRelativePosition::Ally)
+        | (LeadRelativePosition::Left, DealerRelativePosition::Left)
+        | (LeadRelativePosition::Ally, DealerRelativePosition::Dealer)
+        | (LeadRelativePosition::Right, DealerRelativePosition::Right) => {
+            return DealerRelativePosition::Ally
+        }
+        (LeadRelativePosition::Lead, DealerRelativePosition::Right)
+        | (LeadRelativePosition::Left, DealerRelativePosition::Ally)
+        | (LeadRelativePosition::Ally, DealerRelativePosition::Left)
+        | (LeadRelativePosition::Right, DealerRelativePosition::Dealer) => {
+            return DealerRelativePosition::Right
+        }
+        _ => panic!("impossible lead/dealer relative position pairing"),
+    }
 }
