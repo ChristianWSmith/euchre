@@ -18,5 +18,8 @@ Cargo.lock
 
 /target
 
+# Vscode
+.vscode
+
 # Euchre
 *.bin
