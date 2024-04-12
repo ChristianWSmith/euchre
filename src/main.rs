@@ -9,11 +9,14 @@ use crate::euchre::game::play_euchre;
 use crate::organism::neural_network::NeuralNetwork;
 
 fn main() {
-    // number of max simultaneously extant networks times 2
     const NUM_NETWORKS: usize = 2;
+
+    // enough memory for the number of networks plus 3:
+    // - 1 chunk for each network
+    // - 1 chunk for saving/loading a network
+    // - 2 chunks for running a game
     let stack_size: usize = mem::size_of::<NeuralNetwork>() * (NUM_NETWORKS + 3);
 
-    // Spawn a thread with custom stack size
     let handle = thread::Builder::new()
         .stack_size(stack_size)
         .spawn(|| -> std::io::Result<()> {
@@ -32,8 +35,7 @@ fn main() {
             println!("Saving/loading successful");
             Ok(())
         })
-        .unwrap(); // Handle the Result to check for errors
+        .unwrap();
 
-    // Wait for the thread to finish
     handle.join().unwrap().ok();
 }
