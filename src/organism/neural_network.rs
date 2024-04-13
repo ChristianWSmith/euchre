@@ -187,7 +187,7 @@ impl NeuralNetwork {
             if rng.gen::<f64>() < mutation_rate {
                 // TODO: randomize activation function type, and choose a sensible default range
                 child.hidden_activations[i] = ActivationFunctionType::Sigmoid;
-                child.final_biases[i] = 0.0;
+                child.hidden_biases[i] = 0.0;
             }
             if rng.gen::<f64>() < mutation_rate {
                 // TODO: mutate a sensible amount per activation function

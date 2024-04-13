@@ -9,7 +9,7 @@ use crate::euchre::game::play_euchre;
 use crate::organism::neural_network::NeuralNetwork;
 
 fn main() {
-    const NUM_NETWORKS: usize = 2;
+    const NUM_NETWORKS: usize = 3;
 
     // enough memory for the number of networks plus 3:
     // - 1 chunk for each network
@@ -33,6 +33,7 @@ fn main() {
             nn2.load_from_file("model.bin")?;
             assert_eq!(nn1, nn2);
             println!("Saving/loading successful");
+            let nn3 = nn1.crossover(&nn2, 0.01, 0.1);
             Ok(())
         })
         .unwrap();
