@@ -29,11 +29,11 @@ fn main() {
             let winning_team = play_euchre(&nn1, &nn2, &nn1, &nn2);
             println!("{:?}", winning_team);
 
-            nn1.save_to_file("model.bin")?;
-            nn2.load_from_file("model.bin")?;
-            assert_eq!(nn1, nn2);
-            println!("Saving/loading successful");
             let nn3 = nn1.crossover(&nn2, 0.01, 0.1);
+            nn3.save_to_file("model.bin")?;
+            nn2.load_from_file("model.bin")?;
+            assert_eq!(nn3, nn2);
+            println!("Saving/loading successful");
             Ok(())
         })
         .unwrap();
