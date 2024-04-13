@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use rand::prelude::*;
+use rand_derive::Rand;
 use std::fs::File;
 use std::io::{Read, Write};
 use strum::EnumCount;
@@ -21,10 +22,11 @@ lazy_static! {
     };
 }
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone, Copy, Eq, Rand)]
 #[repr(C)]
 enum ActivationFunctionType {
     Sigmoid,
+    LeakyRelu,
 }
 
 #[derive(PartialEq, Debug)]
@@ -63,6 +65,14 @@ impl NeuralNetwork {
         }
     }
 
+    fn default_bias(activation_function: &ActivationFunctionType) -> f64 {
+        let mut rng = rand::thread_rng();
+        match activation_function {
+            ActivationFunctionType::Sigmoid => rng.gen_range(-0.5..0.5),
+            ActivationFunctionType::LeakyRelu => rng.gen_range(0.0..0.1),
+        }
+    }
+
     pub fn init(&mut self) {
         let mut rng = rand::thread_rng();
         for i in 0..StateIndex::COUNT {
@@ -80,18 +90,20 @@ impl NeuralNetwork {
             }
         }
         for i in 0..HIDDEN_NODES {
-            // TODO: randomize activation function type, and choose a sensible default range
-            self.hidden_activations[i] = ActivationFunctionType::Sigmoid;
-            self.hidden_biases[i] = rng.gen_range(-0.5..0.5);
+            self.hidden_activations[i] = rng.gen();
+            self.hidden_biases[i] = NeuralNetwork::default_bias(&self.hidden_activations[i]);
         }
         for i in 0..ActionIndex::COUNT {
-            // TODO: randomize activation function type, and choose a sensible default range
-            self.final_activations[i] = ActivationFunctionType::Sigmoid;
-            self.final_biases[i] = rng.gen_range(-0.5..0.5);
+            self.final_activations[i] = rng.gen();
+            self.final_biases[i] = NeuralNetwork::default_bias(&self.final_activations[i]);
         }
     }
 
     fn sigmoid(x: f64, bias: f64) -> f64 {
+        x.max(x * bias)
+    }
+
+    fn leaky_relu(x: f64, bias: f64) -> f64 {
         1.0 / (1.0 + (-x + bias).exp())
     }
 
@@ -184,10 +196,10 @@ impl NeuralNetwork {
 
         // Mutation - Activations and Biases
         for i in 0..HIDDEN_NODES {
+            // TODO: structural mutation rate
             if rng.gen::<f64>() < mutation_rate {
-                // TODO: randomize activation function type, and choose a sensible default range
-                child.hidden_activations[i] = ActivationFunctionType::Sigmoid;
-                child.hidden_biases[i] = 0.0;
+                child.hidden_activations[i] = rng.gen();
+                child.hidden_biases[i] = NeuralNetwork::default_bias(&child.hidden_activations[i]);
             }
             if rng.gen::<f64>() < mutation_rate {
                 // TODO: mutate a sensible amount per activation function
@@ -195,11 +207,10 @@ impl NeuralNetwork {
             }
         }
         for i in 0..ActionIndex::COUNT {
+            // TODO: structural mutation rate
             if rng.gen::<f64>() < mutation_rate {
-                // TODO: randomize activation function type
-                // TODO: randomize activation function type, and choose a sensible default range
-                child.final_activations[i] = ActivationFunctionType::Sigmoid;
-                child.final_biases[i] = 0.0;
+                child.final_activations[i] = rng.gen();
+                child.final_biases[i] = NeuralNetwork::default_bias(&child.final_activations[i]);
             }
             if rng.gen::<f64>() < mutation_rate {
                 // TODO: mutate a sensible amount per activation function
@@ -225,6 +236,9 @@ impl NeuralNetwork {
                 ActivationFunctionType::Sigmoid => {
                     hidden_outputs[i] = NeuralNetwork::sigmoid(sum, self.hidden_biases[i])
                 }
+                ActivationFunctionType::LeakyRelu => {
+                    hidden_outputs[i] = NeuralNetwork::leaky_relu(sum, self.hidden_biases[i])
+                }
             }
         }
 
@@ -238,6 +252,9 @@ impl NeuralNetwork {
             match self.final_activations[i] {
                 ActivationFunctionType::Sigmoid => {
                     final_outputs[i] = NeuralNetwork::sigmoid(sum, self.final_biases[i])
+                }
+                ActivationFunctionType::LeakyRelu => {
+                    final_outputs[i] = NeuralNetwork::leaky_relu(sum, self.final_biases[i])
                 }
             }
         }
