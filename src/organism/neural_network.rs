@@ -121,12 +121,9 @@ impl NeuralNetwork {
             for j in 0..HIDDEN_NODES {
                 if rng.gen::<f64>() < 0.5 {
                     child.weights_input_hidden[i][j] = self.weights_input_hidden[i][j];
-                } else {
-                    child.weights_input_hidden[i][j] = partner.weights_input_hidden[i][j];
-                }
-                if rng.gen::<f64>() < 0.5 {
                     child.connections_input_hidden[i][j] = self.connections_input_hidden[i][j];
                 } else {
+                    child.weights_input_hidden[i][j] = partner.weights_input_hidden[i][j];
                     child.connections_input_hidden[i][j] = partner.connections_input_hidden[i][j];
                 }
             }
@@ -136,12 +133,9 @@ impl NeuralNetwork {
             for j in 0..ActionIndex::COUNT {
                 if rng.gen::<f64>() < 0.5 {
                     child.weights_hidden_output[i][j] = self.weights_hidden_output[i][j];
-                } else {
-                    child.weights_hidden_output[i][j] = partner.weights_hidden_output[i][j];
-                }
-                if rng.gen::<f64>() < 0.5 {
                     child.connections_hidden_output[i][j] = self.connections_hidden_output[i][j];
                 } else {
+                    child.weights_hidden_output[i][j] = partner.weights_hidden_output[i][j];
                     child.connections_hidden_output[i][j] = partner.connections_hidden_output[i][j];
                 }
             }
