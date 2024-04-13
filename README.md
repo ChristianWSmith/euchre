@@ -2,7 +2,7 @@
 NEAT (almost) for Euchre entirely (mostly?) in stack memory.
 
 ## TODO
-- add different activation functions to NN
+- add even more activation functions to NN
 - agent populations / evolution / tournament
 - decouple NeuralNetwork from euchre to support user player
 - command line arguments / refactor main to be a tool
