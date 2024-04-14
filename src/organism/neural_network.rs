@@ -81,14 +81,12 @@ impl NeuralNetwork {
         for i in 0..StateIndex::COUNT {
             for j in 0..HIDDEN_NODES {
                 self.weights_input_hidden[i][j] = rng.gen_range(-0.5..0.5);
-                // TODO: configurable connection rate
                 self.connections_input_hidden[i][j] = rng.gen::<f64>() < 0.5;
             }
         }
         for i in 0..HIDDEN_NODES {
             for j in 0..ActionIndex::COUNT {
                 self.weights_hidden_output[i][j] = rng.gen_range(-0.5..0.5);
-                // TODO: configurable connection rate
                 self.connections_hidden_output[i][j] = rng.gen::<f64>() < 0.5;
             }
         }
@@ -109,6 +107,22 @@ impl NeuralNetwork {
         match activation_function {
             ActivationFunctionType::Sigmoid => rng.gen_range(-0.5..0.5),
             ActivationFunctionType::LeakyRelu => rng.gen_range(0.0..0.1),
+            ActivationFunctionType::Tanh => 0.0,
+        }
+    }
+
+    fn mutate_bias(
+        activation_function: &ActivationFunctionType,
+        bias: &f64,
+        mutation_magnitude: &f64,
+    ) -> f64 {
+        let mut rng = rand::thread_rng();
+        match activation_function {
+            ActivationFunctionType::Sigmoid => {
+                bias + rng.gen_range(-*mutation_magnitude..*mutation_magnitude)
+            }
+            ActivationFunctionType::LeakyRelu => 0.0f64
+                .max(bias + rng.gen_range(-*mutation_magnitude * 0.1..*mutation_magnitude * 0.1)),
             ActivationFunctionType::Tanh => 0.0,
         }
     }
@@ -212,8 +226,11 @@ impl NeuralNetwork {
                 child.hidden_biases[i] = NeuralNetwork::default_bias(&child.hidden_activations[i]);
             }
             if rng.gen::<f64>() < mutation_rate {
-                // TODO: mutate a sensible amount per activation function
-                child.hidden_biases[i] += rng.gen_range(-mutation_magnitude..mutation_magnitude);
+                child.hidden_biases[i] = NeuralNetwork::mutate_bias(
+                    &child.hidden_activations[i],
+                    &child.hidden_biases[i],
+                    &mutation_magnitude,
+                );
             }
         }
         for i in 0..ActionIndex::COUNT {
@@ -223,8 +240,11 @@ impl NeuralNetwork {
                 child.final_biases[i] = NeuralNetwork::default_bias(&child.final_activations[i]);
             }
             if rng.gen::<f64>() < mutation_rate {
-                // TODO: mutate a sensible amount per activation function
-                child.final_biases[i] += rng.gen_range(-mutation_magnitude..mutation_magnitude);
+                child.final_biases[i] = NeuralNetwork::mutate_bias(
+                    &child.final_activations[i],
+                    &child.final_biases[i],
+                    &mutation_magnitude,
+                )
             }
         }
 
