@@ -23,9 +23,9 @@ lazy_static! {
 
 #[derive(Clone, Copy)]
 pub struct Organism {
-    brain: Option<NeuralNetwork>,
-    lifetime: usize,
-    generation: usize,
+    pub brain: Option<NeuralNetwork>,
+    pub lifetime: usize,
+    pub generation: usize,
 }
 
 // must be a multiple of 4
@@ -53,7 +53,7 @@ fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     panic!("couldn't finish match")
 }
 
-pub fn evolve(generations: usize) {
+pub fn evolve(generations: usize) -> Organism {
     let mut organisms: [Organism; POPULATION_SIZE] = [Organism {
         brain: None,
         lifetime: 0,
@@ -120,4 +120,7 @@ pub fn evolve(generations: usize) {
             );
         }
     }
+
+    // TODO: crown a champion?
+    return organisms[0];
 }
