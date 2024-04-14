@@ -40,7 +40,7 @@ enum ActivationFunctionType {
     Tanh,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 #[repr(C)]
 pub struct NeuralNetwork {
     weights_input_hidden: [[f64; HIDDEN_NODES]; StateIndex::COUNT],
