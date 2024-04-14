@@ -19,6 +19,8 @@ fn main() {
     // - 1 chunk for each network
     // - 1 chunk for saving/loading a network
     // - 2 chunks for running a game
+
+    // TODO: figure this out
     let stack_size: usize = mem::size_of::<Organism>() * (NUM_ORGANISMS + 31);
 
     let handle = thread::Builder::new()

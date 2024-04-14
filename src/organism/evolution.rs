@@ -58,6 +58,7 @@ pub fn evolve(generations: usize) {
         lifetime: 0,
         generation: 0,
     }; POPULATION_SIZE];
+    // TODO: get rid of all this ugly copying
     let mut breeders: [Organism; POPULATION_SIZE / 2] = [Organism {
         brain: None,
         lifetime: 0,
