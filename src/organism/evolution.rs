@@ -2,7 +2,7 @@ use crate::euchre::{enums::Team, game::play_euchre};
 
 use super::neural_network::NeuralNetwork;
 use lazy_static::lazy_static;
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, thread_rng, Rng};
 
 lazy_static! {
     static ref POPULATION_INDICES: [usize; POPULATION_SIZE] = {
@@ -12,9 +12,9 @@ lazy_static! {
         }
         indices
     };
-    static ref BREEDER_INDICES: [usize; POPULATION_SIZE / 2] = {
-        let mut indices = [0; POPULATION_SIZE / 2];
-        for i in 0..POPULATION_SIZE / 2 {
+    static ref BREEDER_INDICES: [usize; BREEDING_POOL_SIZE] = {
+        let mut indices = [0; BREEDING_POOL_SIZE];
+        for i in 0..BREEDING_POOL_SIZE {
             indices[i] = i;
         }
         indices
@@ -29,9 +29,10 @@ pub struct Organism {
 }
 
 // must be a multiple of 4
-const POPULATION_SIZE: usize = 4;
+pub const POPULATION_SIZE: usize = 8;
+const BREEDING_POOL_SIZE: usize = POPULATION_SIZE / 2;
 
-fn play_match(organism1: Organism, organism2: Organism) -> bool {
+fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     let (mut organism1_wins, mut orgaism2_wins) = (0, 0);
     for _ in 0..3 {
         match play_euchre(
@@ -58,12 +59,7 @@ pub fn evolve(generations: usize) {
         lifetime: 0,
         generation: 0,
     }; POPULATION_SIZE];
-    // TODO: get rid of all this ugly copying
-    let mut breeders: [Organism; POPULATION_SIZE / 2] = [Organism {
-        brain: None,
-        lifetime: 0,
-        generation: 0,
-    }; POPULATION_SIZE / 2];
+    let mut breeder_indices: [usize; BREEDING_POOL_SIZE] = [0; BREEDING_POOL_SIZE];
     for i in 0..POPULATION_SIZE {
         let mut nn = NeuralNetwork::new();
         nn.init();
@@ -77,30 +73,52 @@ pub fn evolve(generations: usize) {
 
         let mut population_indices: [usize; POPULATION_SIZE] = POPULATION_INDICES.clone();
         population_indices.shuffle(&mut rand::thread_rng());
-        for i in 0..POPULATION_SIZE / 2 {
+        println!("{:?}", population_indices);
+        for i in 0..BREEDING_POOL_SIZE {
             match play_match(
-                organisms[population_indices[i * 2]],
-                organisms[population_indices[i * 2 + 1]],
+                &organisms[population_indices[i * 2]],
+                &organisms[population_indices[i * 2 + 1]],
             ) {
-                true => breeders[i] = organisms[population_indices[i * 2]],
-                false => breeders[i] = organisms[population_indices[i * 2 + 1]],
+                true => breeder_indices[i] = population_indices[i * 2],
+                false => breeder_indices[i] = population_indices[i * 2 + 1],
             }
-            breeders[i].lifetime += 1;
         }
 
-        let mut breeder_indices: [usize; POPULATION_SIZE] = POPULATION_INDICES.clone();
-        breeder_indices.shuffle(&mut rand::thread_rng());
-        for i in 0..POPULATION_SIZE / 4 {
-            organisms[i] = breeders[i];
-            organisms[i * 2] = Organism {
-                brain: Some(breeders[i * 2].brain.unwrap().crossover(
-                    &breeders[i * 2 + 1].brain.unwrap(),
-                    0.01,
-                    0.1,
-                )),
-                lifetime: 0,
-                generation: generation,
-            };
+        let mut rng = thread_rng();
+        breeder_indices.sort();
+        println!("{:?}", breeder_indices);
+        let mut check_cursor: usize = 0;
+        for i in 0..POPULATION_SIZE {
+            if check_cursor < BREEDING_POOL_SIZE && breeder_indices[check_cursor] == i {
+                organisms[i].lifetime += 1;
+                check_cursor += 1;
+            } else {
+                organisms[i] = Organism {
+                    brain: Some(
+                        organisms[breeder_indices[rng.gen_range(0..BREEDING_POOL_SIZE - 1)]]
+                            .brain
+                            .unwrap()
+                            .crossover(
+                                &organisms
+                                    [breeder_indices[rng.gen_range(0..BREEDING_POOL_SIZE - 1)]]
+                                .brain
+                                .unwrap(),
+                                0.01,
+                                0.1,
+                            ),
+                    ),
+                    lifetime: 0,
+                    generation: generation,
+                };
+            }
+        }
+
+        println!("Generation {}", generation);
+        for i in 0..POPULATION_SIZE {
+            println!(
+                "lifetime: {}, generation: {}",
+                organisms[i].lifetime, organisms[i].generation
+            );
         }
     }
 }

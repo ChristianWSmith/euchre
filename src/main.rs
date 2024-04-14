@@ -5,23 +5,13 @@ mod euchre;
 
 mod organism;
 
-use crate::euchre::enums::Team;
-use crate::euchre::game::play_euchre;
-use crate::organism::evolution;
 use crate::organism::evolution::evolve;
 use crate::organism::evolution::Organism;
-use crate::organism::neural_network::NeuralNetwork;
+use crate::organism::evolution::POPULATION_SIZE;
 
 fn main() {
-    const NUM_ORGANISMS: usize = 4;
-
-    // enough memory for the number of networks plus 3:
-    // - 1 chunk for each network
-    // - 1 chunk for saving/loading a network
-    // - 2 chunks for running a game
-
     // TODO: figure this out
-    let stack_size: usize = mem::size_of::<Organism>() * (NUM_ORGANISMS + 31);
+    let stack_size: usize = mem::size_of::<Organism>() * (POPULATION_SIZE + 21);
 
     let handle = thread::Builder::new()
         .stack_size(stack_size)
