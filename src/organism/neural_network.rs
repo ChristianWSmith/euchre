@@ -51,8 +51,6 @@ pub struct NeuralNetwork {
     final_biases: [f64; ActionIndex::COUNT],
     hidden_activation_functions: [ActivationFunctionType; HIDDEN_NODES],
     final_activation_functions: [ActivationFunctionType; ActionIndex::COUNT],
-    hidden_activation_arguments: [f64; HIDDEN_NODES],
-    final_activation_arguments: [f64; ActionIndex::COUNT],
 }
 
 impl NeuralNetwork {
@@ -65,8 +63,6 @@ impl NeuralNetwork {
         let final_biases = [0.0; ActionIndex::COUNT];
         let hidden_activation_functions = [ActivationFunctionType::Sigmoid; HIDDEN_NODES];
         let final_activation_functions = [ActivationFunctionType::Sigmoid; ActionIndex::COUNT];
-        let hidden_activation_arguments = [0.0; HIDDEN_NODES];
-        let final_activation_arguments = [0.0; ActionIndex::COUNT];
 
         NeuralNetwork {
             weights_input_hidden,
@@ -77,8 +73,6 @@ impl NeuralNetwork {
             final_biases,
             hidden_activation_functions,
             final_activation_functions,
-            hidden_activation_arguments,
-            final_activation_arguments,
         }
     }
 
@@ -100,49 +94,20 @@ impl NeuralNetwork {
             self.hidden_biases[i] = rng.gen_range(-0.5..0.5);
             self.hidden_activation_functions[i] =
                 ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-            self.hidden_activation_arguments[i] =
-                NeuralNetwork::default_activation_argument(&self.hidden_activation_functions[i]);
         }
         for i in 0..ActionIndex::COUNT {
             self.final_biases[i] = rng.gen_range(-0.5..0.5);
             self.final_activation_functions[i] =
                 ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-            self.final_activation_arguments[i] =
-                NeuralNetwork::default_activation_argument(&self.final_activation_functions[i]);
-        }
-    }
-
-    fn default_activation_argument(activation_function: &ActivationFunctionType) -> f64 {
-        let mut rng = rand::thread_rng();
-        match activation_function {
-            ActivationFunctionType::Sigmoid => 0.0,
-            ActivationFunctionType::LeakyRelu => rng.gen_range(0.0..0.1),
-            ActivationFunctionType::Tanh => 0.0,
-        }
-    }
-
-    fn mutate_activation_argument(
-        activation_function: &ActivationFunctionType,
-        activation_argument: &f64,
-        mutation_magnitude: &f64,
-    ) -> f64 {
-        let mut rng = rand::thread_rng();
-        match activation_function {
-            ActivationFunctionType::Sigmoid => 0.0,
-            ActivationFunctionType::LeakyRelu => 0.0f64.max(
-                activation_argument
-                    + rng.gen_range(-*mutation_magnitude * 0.1..*mutation_magnitude * 0.1),
-            ),
-            ActivationFunctionType::Tanh => 0.0,
         }
     }
 
     fn sigmoid(x: f64) -> f64 {
-        x.max(x)
+        1.0 / (1.0 + (-x).exp())
     }
 
-    fn leaky_relu(x: f64, activation_argument: f64) -> f64 {
-        1.0 / (1.0 + (-x + activation_argument).exp())
+    fn leaky_relu(x: f64) -> f64 {
+        x.max(x * 0.01)
     }
 
     fn tanh(x: f64) -> f64 {
@@ -197,19 +162,15 @@ impl NeuralNetwork {
         for i in 0..HIDDEN_NODES {
             if rng.gen::<f64>() < 0.5 {
                 child.hidden_activation_functions[i] = self.hidden_activation_functions[i];
-                child.hidden_activation_arguments[i] = self.hidden_activation_arguments[i];
             } else {
                 child.hidden_activation_functions[i] = partner.hidden_activation_functions[i];
-                child.hidden_activation_arguments[i] = partner.hidden_activation_arguments[i];
             }
         }
         for i in 0..ActionIndex::COUNT {
             if rng.gen::<f64>() < 0.5 {
                 child.final_activation_functions[i] = self.final_activation_functions[i];
-                child.final_activation_arguments[i] = self.final_activation_arguments[i];
             } else {
                 child.final_activation_functions[i] = partner.final_activation_functions[i];
-                child.final_activation_arguments[i] = partner.final_activation_arguments[i];
             }
         }
 
@@ -249,32 +210,12 @@ impl NeuralNetwork {
             if rng.gen::<f64>() < mutation_rate {
                 child.hidden_activation_functions[i] =
                     ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-                child.hidden_activation_arguments[i] = NeuralNetwork::default_activation_argument(
-                    &child.hidden_activation_functions[i],
-                );
-            }
-            if rng.gen::<f64>() < mutation_rate {
-                child.hidden_activation_arguments[i] = NeuralNetwork::mutate_activation_argument(
-                    &child.hidden_activation_functions[i],
-                    &child.hidden_activation_arguments[i],
-                    &mutation_magnitude,
-                );
             }
         }
         for i in 0..ActionIndex::COUNT {
             if rng.gen::<f64>() < mutation_rate {
                 child.final_activation_functions[i] =
                     ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-                child.final_activation_arguments[i] = NeuralNetwork::default_activation_argument(
-                    &child.final_activation_functions[i],
-                );
-            }
-            if rng.gen::<f64>() < mutation_rate {
-                child.final_activation_arguments[i] = NeuralNetwork::mutate_activation_argument(
-                    &child.final_activation_functions[i],
-                    &child.final_activation_arguments[i],
-                    &mutation_magnitude,
-                )
             }
         }
 
@@ -295,8 +236,7 @@ impl NeuralNetwork {
             match self.hidden_activation_functions[i] {
                 ActivationFunctionType::Sigmoid => hidden_outputs[i] = NeuralNetwork::sigmoid(sum),
                 ActivationFunctionType::LeakyRelu => {
-                    hidden_outputs[i] =
-                        NeuralNetwork::leaky_relu(sum, self.hidden_activation_arguments[i])
+                    hidden_outputs[i] = NeuralNetwork::leaky_relu(sum)
                 }
                 ActivationFunctionType::Tanh => hidden_outputs[i] = NeuralNetwork::tanh(sum),
             }
@@ -312,8 +252,7 @@ impl NeuralNetwork {
             match self.final_activation_functions[i] {
                 ActivationFunctionType::Sigmoid => final_outputs[i] = NeuralNetwork::sigmoid(sum),
                 ActivationFunctionType::LeakyRelu => {
-                    final_outputs[i] =
-                        NeuralNetwork::leaky_relu(sum, self.final_activation_arguments[i])
+                    final_outputs[i] = NeuralNetwork::leaky_relu(sum)
                 }
                 ActivationFunctionType::Tanh => final_outputs[i] = NeuralNetwork::tanh(sum),
             }
@@ -373,8 +312,6 @@ impl NeuralNetwork {
         self.final_biases = in_network.final_biases;
         self.hidden_activation_functions = in_network.hidden_activation_functions;
         self.final_activation_functions = in_network.final_activation_functions;
-        self.hidden_activation_arguments = in_network.hidden_activation_arguments;
-        self.final_activation_arguments = in_network.final_activation_arguments;
         Ok(())
     }
 }
