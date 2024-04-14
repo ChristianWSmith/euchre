@@ -115,7 +115,7 @@ impl NeuralNetwork {
     fn default_activation_argument(activation_function: &ActivationFunctionType) -> f64 {
         let mut rng = rand::thread_rng();
         match activation_function {
-            ActivationFunctionType::Sigmoid => rng.gen_range(-0.5..0.5),
+            ActivationFunctionType::Sigmoid => 0.0,
             ActivationFunctionType::LeakyRelu => rng.gen_range(0.0..0.1),
             ActivationFunctionType::Tanh => 0.0,
         }
