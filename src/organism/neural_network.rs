@@ -1,9 +1,9 @@
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use rand_derive::Rand;
 use std::fs::File;
 use std::io::{Read, Write};
-use strum::EnumCount;
+use strum::{EnumCount, IntoEnumIterator};
+use strum_macros::{EnumCount, EnumIter};
 
 use crate::euchre::enums::{ActionIndex, StateIndex};
 
@@ -20,13 +20,24 @@ lazy_static! {
         }
         indices
     };
+    static ref ACTIVATION_FUNCTION_TYPES: [ActivationFunctionType; ActivationFunctionType::COUNT] = {
+        let mut activation_function_types =
+            [ActivationFunctionType::Sigmoid; ActivationFunctionType::COUNT];
+        let mut i = 0;
+        for aft in ActivationFunctionType::iter() {
+            activation_function_types[i] = aft;
+            i += 1;
+        }
+        activation_function_types
+    };
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Eq, Rand)]
+#[derive(PartialEq, Debug, Clone, Copy, Eq, EnumIter, EnumCount)]
 #[repr(C)]
 enum ActivationFunctionType {
     Sigmoid,
     LeakyRelu,
+    Tanh,
 }
 
 #[derive(PartialEq, Debug)]
@@ -82,11 +93,13 @@ impl NeuralNetwork {
             }
         }
         for i in 0..HIDDEN_NODES {
-            self.hidden_activations[i] = rng.gen();
+            self.hidden_activations[i] =
+                ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
             self.hidden_biases[i] = NeuralNetwork::default_bias(&self.hidden_activations[i]);
         }
         for i in 0..ActionIndex::COUNT {
-            self.final_activations[i] = rng.gen();
+            self.final_activations[i] =
+                ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
             self.final_biases[i] = NeuralNetwork::default_bias(&self.final_activations[i]);
         }
     }
@@ -96,6 +109,7 @@ impl NeuralNetwork {
         match activation_function {
             ActivationFunctionType::Sigmoid => rng.gen_range(-0.5..0.5),
             ActivationFunctionType::LeakyRelu => rng.gen_range(0.0..0.1),
+            ActivationFunctionType::Tanh => 0.0,
         }
     }
 
@@ -105,6 +119,10 @@ impl NeuralNetwork {
 
     fn leaky_relu(x: f64, bias: f64) -> f64 {
         1.0 / (1.0 + (-x + bias).exp())
+    }
+
+    fn tanh(x: f64) -> f64 {
+        x.tanh()
     }
 
     pub fn crossover(
@@ -189,7 +207,8 @@ impl NeuralNetwork {
         // Mutation - Activations and Biases
         for i in 0..HIDDEN_NODES {
             if rng.gen::<f64>() < mutation_rate {
-                child.hidden_activations[i] = rng.gen();
+                child.hidden_activations[i] =
+                    ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
                 child.hidden_biases[i] = NeuralNetwork::default_bias(&child.hidden_activations[i]);
             }
             if rng.gen::<f64>() < mutation_rate {
@@ -199,7 +218,8 @@ impl NeuralNetwork {
         }
         for i in 0..ActionIndex::COUNT {
             if rng.gen::<f64>() < mutation_rate {
-                child.final_activations[i] = rng.gen();
+                child.final_activations[i] =
+                    ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
                 child.final_biases[i] = NeuralNetwork::default_bias(&child.final_activations[i]);
             }
             if rng.gen::<f64>() < mutation_rate {
@@ -229,6 +249,7 @@ impl NeuralNetwork {
                 ActivationFunctionType::LeakyRelu => {
                     hidden_outputs[i] = NeuralNetwork::leaky_relu(sum, self.hidden_biases[i])
                 }
+                ActivationFunctionType::Tanh => hidden_outputs[i] = NeuralNetwork::tanh(sum),
             }
         }
 
@@ -246,6 +267,7 @@ impl NeuralNetwork {
                 ActivationFunctionType::LeakyRelu => {
                     final_outputs[i] = NeuralNetwork::leaky_relu(sum, self.final_biases[i])
                 }
+                ActivationFunctionType::Tanh => final_outputs[i] = NeuralNetwork::tanh(sum),
             }
         }
 
