@@ -47,10 +47,12 @@ pub struct NeuralNetwork {
     weights_hidden_output: [[f64; ActionIndex::COUNT]; HIDDEN_NODES],
     connections_input_hidden: [[bool; HIDDEN_NODES]; StateIndex::COUNT],
     connections_hidden_output: [[bool; ActionIndex::COUNT]; HIDDEN_NODES],
-    hidden_activations: [ActivationFunctionType; HIDDEN_NODES],
-    final_activations: [ActivationFunctionType; ActionIndex::COUNT],
     hidden_biases: [f64; HIDDEN_NODES],
     final_biases: [f64; ActionIndex::COUNT],
+    hidden_activation_functions: [ActivationFunctionType; HIDDEN_NODES],
+    final_activation_functions: [ActivationFunctionType; ActionIndex::COUNT],
+    hidden_activation_arguments: [f64; HIDDEN_NODES],
+    final_activation_arguments: [f64; ActionIndex::COUNT],
 }
 
 impl NeuralNetwork {
@@ -59,20 +61,24 @@ impl NeuralNetwork {
         let weights_hidden_output = [[0.0; ActionIndex::COUNT]; HIDDEN_NODES];
         let connections_input_hidden = [[true; HIDDEN_NODES]; StateIndex::COUNT];
         let connections_hidden_output = [[true; ActionIndex::COUNT]; HIDDEN_NODES];
-        let hidden_activations = [ActivationFunctionType::Sigmoid; HIDDEN_NODES];
-        let final_activations = [ActivationFunctionType::Sigmoid; ActionIndex::COUNT];
         let hidden_biases = [0.0; HIDDEN_NODES];
         let final_biases = [0.0; ActionIndex::COUNT];
+        let hidden_activation_functions = [ActivationFunctionType::Sigmoid; HIDDEN_NODES];
+        let final_activation_functions = [ActivationFunctionType::Sigmoid; ActionIndex::COUNT];
+        let hidden_activation_arguments = [0.0; HIDDEN_NODES];
+        let final_activation_arguments = [0.0; ActionIndex::COUNT];
 
         NeuralNetwork {
             weights_input_hidden,
             weights_hidden_output,
             connections_input_hidden,
             connections_hidden_output,
-            hidden_activations,
-            final_activations,
             hidden_biases,
             final_biases,
+            hidden_activation_functions,
+            final_activation_functions,
+            hidden_activation_arguments,
+            final_activation_arguments,
         }
     }
 
@@ -91,18 +97,22 @@ impl NeuralNetwork {
             }
         }
         for i in 0..HIDDEN_NODES {
-            self.hidden_activations[i] =
+            self.hidden_biases[i] = rng.gen_range(-0.5..0.5);
+            self.hidden_activation_functions[i] =
                 ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-            self.hidden_biases[i] = NeuralNetwork::default_bias(&self.hidden_activations[i]);
+            self.hidden_activation_arguments[i] =
+                NeuralNetwork::default_activation_argument(&self.hidden_activation_functions[i]);
         }
         for i in 0..ActionIndex::COUNT {
-            self.final_activations[i] =
+            self.final_biases[i] = rng.gen_range(-0.5..0.5);
+            self.final_activation_functions[i] =
                 ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-            self.final_biases[i] = NeuralNetwork::default_bias(&self.final_activations[i]);
+            self.final_activation_arguments[i] =
+                NeuralNetwork::default_activation_argument(&self.final_activation_functions[i]);
         }
     }
 
-    fn default_bias(activation_function: &ActivationFunctionType) -> f64 {
+    fn default_activation_argument(activation_function: &ActivationFunctionType) -> f64 {
         let mut rng = rand::thread_rng();
         match activation_function {
             ActivationFunctionType::Sigmoid => rng.gen_range(-0.5..0.5),
@@ -111,28 +121,30 @@ impl NeuralNetwork {
         }
     }
 
-    fn mutate_bias(
+    fn mutate_activation_argument(
         activation_function: &ActivationFunctionType,
-        bias: &f64,
+        activation_argument: &f64,
         mutation_magnitude: &f64,
     ) -> f64 {
         let mut rng = rand::thread_rng();
         match activation_function {
             ActivationFunctionType::Sigmoid => {
-                bias + rng.gen_range(-*mutation_magnitude..*mutation_magnitude)
+                activation_argument + rng.gen_range(-*mutation_magnitude..*mutation_magnitude)
             }
-            ActivationFunctionType::LeakyRelu => 0.0f64
-                .max(bias + rng.gen_range(-*mutation_magnitude * 0.1..*mutation_magnitude * 0.1)),
+            ActivationFunctionType::LeakyRelu => 0.0f64.max(
+                activation_argument
+                    + rng.gen_range(-*mutation_magnitude * 0.1..*mutation_magnitude * 0.1),
+            ),
             ActivationFunctionType::Tanh => 0.0,
         }
     }
 
-    fn sigmoid(x: f64, bias: f64) -> f64 {
-        x.max(x * bias)
+    fn sigmoid(x: f64) -> f64 {
+        x.max(x)
     }
 
-    fn leaky_relu(x: f64, bias: f64) -> f64 {
-        1.0 / (1.0 + (-x + bias).exp())
+    fn leaky_relu(x: f64, activation_argument: f64) -> f64 {
+        1.0 / (1.0 + (-x + activation_argument).exp())
     }
 
     fn tanh(x: f64) -> f64 {
@@ -148,9 +160,14 @@ impl NeuralNetwork {
         let mut rng = rand::thread_rng();
         let mut child = NeuralNetwork::new();
 
-        // Combination - Weights and Connections
-        for i in 0..StateIndex::COUNT {
-            for j in 0..HIDDEN_NODES {
+        // Combination - Weights and Connections and Biases
+        for j in 0..HIDDEN_NODES {
+            if rng.gen::<f64>() < 0.5 {
+                child.hidden_biases[j] = self.hidden_biases[j];
+            } else {
+                child.hidden_biases[j] = partner.hidden_biases[j];
+            }
+            for i in 0..StateIndex::COUNT {
                 if rng.gen::<f64>() < 0.5 {
                     child.weights_input_hidden[i][j] = self.weights_input_hidden[i][j];
                     child.connections_input_hidden[i][j] = self.connections_input_hidden[i][j];
@@ -161,8 +178,13 @@ impl NeuralNetwork {
             }
         }
 
-        for i in 0..HIDDEN_NODES {
-            for j in 0..ActionIndex::COUNT {
+        for j in 0..ActionIndex::COUNT {
+            if rng.gen::<f64>() < 0.5 {
+                child.final_biases[j] = self.final_biases[j];
+            } else {
+                child.final_biases[j] = partner.final_biases[j];
+            }
+            for i in 0..HIDDEN_NODES {
                 if rng.gen::<f64>() < 0.5 {
                     child.weights_hidden_output[i][j] = self.weights_hidden_output[i][j];
                     child.connections_hidden_output[i][j] = self.connections_hidden_output[i][j];
@@ -173,30 +195,33 @@ impl NeuralNetwork {
             }
         }
 
-        // Combination - Activations and Biases
+        // Combination - Activations and Arguments
         for i in 0..HIDDEN_NODES {
             if rng.gen::<f64>() < 0.5 {
-                child.hidden_activations[i] = self.hidden_activations[i];
-                child.hidden_biases[i] = self.hidden_biases[i];
+                child.hidden_activation_functions[i] = self.hidden_activation_functions[i];
+                child.hidden_activation_arguments[i] = self.hidden_activation_arguments[i];
             } else {
-                child.hidden_activations[i] = partner.hidden_activations[i];
-                child.hidden_biases[i] = partner.hidden_biases[i];
+                child.hidden_activation_functions[i] = partner.hidden_activation_functions[i];
+                child.hidden_activation_arguments[i] = partner.hidden_activation_arguments[i];
             }
         }
         for i in 0..ActionIndex::COUNT {
             if rng.gen::<f64>() < 0.5 {
-                child.final_activations[i] = self.final_activations[i];
-                child.final_biases[i] = self.final_biases[i];
+                child.final_activation_functions[i] = self.final_activation_functions[i];
+                child.final_activation_arguments[i] = self.final_activation_arguments[i];
             } else {
-                child.final_activations[i] = partner.final_activations[i];
-                child.final_biases[i] = partner.final_biases[i];
+                child.final_activation_functions[i] = partner.final_activation_functions[i];
+                child.final_activation_arguments[i] = partner.final_activation_arguments[i];
             }
         }
 
-        // Mutation - Weights and Connections
+        // Mutation - Weights and Connections and Biases
         let mut rng = rand::thread_rng();
-        for i in 0..StateIndex::COUNT {
-            for j in 0..HIDDEN_NODES {
+        for j in 0..HIDDEN_NODES {
+            if rng.gen::<f64>() < mutation_rate {
+                child.hidden_biases[j] += rng.gen_range(-mutation_magnitude..mutation_magnitude);
+            }
+            for i in 0..StateIndex::COUNT {
                 if rng.gen::<f64>() < mutation_rate {
                     child.connections_input_hidden[i][j] = !child.connections_input_hidden[i][j];
                 }
@@ -206,8 +231,11 @@ impl NeuralNetwork {
                 }
             }
         }
-        for i in 0..HIDDEN_NODES {
-            for j in 0..ActionIndex::COUNT {
+        for j in 0..ActionIndex::COUNT {
+            if rng.gen::<f64>() < mutation_rate {
+                child.final_biases[j] += rng.gen_range(-mutation_magnitude..mutation_magnitude);
+            }
+            for i in 0..HIDDEN_NODES {
                 if rng.gen::<f64>() < mutation_rate {
                     child.connections_hidden_output[i][j] = !child.connections_hidden_output[i][j];
                 }
@@ -218,31 +246,35 @@ impl NeuralNetwork {
             }
         }
 
-        // Mutation - Activations and Biases
+        // Mutation - Activations and Arguments
         for i in 0..HIDDEN_NODES {
             if rng.gen::<f64>() < mutation_rate {
-                child.hidden_activations[i] =
+                child.hidden_activation_functions[i] =
                     ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-                child.hidden_biases[i] = NeuralNetwork::default_bias(&child.hidden_activations[i]);
+                child.hidden_activation_arguments[i] = NeuralNetwork::default_activation_argument(
+                    &child.hidden_activation_functions[i],
+                );
             }
             if rng.gen::<f64>() < mutation_rate {
-                child.hidden_biases[i] = NeuralNetwork::mutate_bias(
-                    &child.hidden_activations[i],
-                    &child.hidden_biases[i],
+                child.hidden_activation_arguments[i] = NeuralNetwork::mutate_activation_argument(
+                    &child.hidden_activation_functions[i],
+                    &child.hidden_activation_arguments[i],
                     &mutation_magnitude,
                 );
             }
         }
         for i in 0..ActionIndex::COUNT {
             if rng.gen::<f64>() < mutation_rate {
-                child.final_activations[i] =
+                child.final_activation_functions[i] =
                     ACTIVATION_FUNCTION_TYPES[rng.gen_range(0..ActivationFunctionType::COUNT)];
-                child.final_biases[i] = NeuralNetwork::default_bias(&child.final_activations[i]);
+                child.final_activation_arguments[i] = NeuralNetwork::default_activation_argument(
+                    &child.final_activation_functions[i],
+                );
             }
             if rng.gen::<f64>() < mutation_rate {
-                child.final_biases[i] = NeuralNetwork::mutate_bias(
-                    &child.final_activations[i],
-                    &child.final_biases[i],
+                child.final_activation_arguments[i] = NeuralNetwork::mutate_activation_argument(
+                    &child.final_activation_functions[i],
+                    &child.final_activation_arguments[i],
                     &mutation_magnitude,
                 )
             }
@@ -256,36 +288,34 @@ impl NeuralNetwork {
         let mut final_outputs = [0.0; ActionIndex::COUNT];
 
         for i in 0..HIDDEN_NODES {
-            let mut sum = 0.0;
+            let mut sum = self.hidden_biases[i];
             for j in 0..StateIndex::COUNT {
                 if self.connections_input_hidden[j][i] {
                     sum += inputs[j] * self.weights_input_hidden[j][i];
                 }
             }
-            match self.hidden_activations[i] {
-                ActivationFunctionType::Sigmoid => {
-                    hidden_outputs[i] = NeuralNetwork::sigmoid(sum, self.hidden_biases[i])
-                }
+            match self.hidden_activation_functions[i] {
+                ActivationFunctionType::Sigmoid => hidden_outputs[i] = NeuralNetwork::sigmoid(sum),
                 ActivationFunctionType::LeakyRelu => {
-                    hidden_outputs[i] = NeuralNetwork::leaky_relu(sum, self.hidden_biases[i])
+                    hidden_outputs[i] =
+                        NeuralNetwork::leaky_relu(sum, self.hidden_activation_arguments[i])
                 }
                 ActivationFunctionType::Tanh => hidden_outputs[i] = NeuralNetwork::tanh(sum),
             }
         }
 
         for i in 0..ActionIndex::COUNT {
-            let mut sum = 0.0;
+            let mut sum = self.final_biases[i];
             for j in 0..HIDDEN_NODES {
                 if self.connections_hidden_output[j][i] {
                     sum += hidden_outputs[j] * self.weights_hidden_output[j][i];
                 }
             }
-            match self.final_activations[i] {
-                ActivationFunctionType::Sigmoid => {
-                    final_outputs[i] = NeuralNetwork::sigmoid(sum, self.final_biases[i])
-                }
+            match self.final_activation_functions[i] {
+                ActivationFunctionType::Sigmoid => final_outputs[i] = NeuralNetwork::sigmoid(sum),
                 ActivationFunctionType::LeakyRelu => {
-                    final_outputs[i] = NeuralNetwork::leaky_relu(sum, self.final_biases[i])
+                    final_outputs[i] =
+                        NeuralNetwork::leaky_relu(sum, self.final_activation_arguments[i])
                 }
                 ActivationFunctionType::Tanh => final_outputs[i] = NeuralNetwork::tanh(sum),
             }
@@ -341,10 +371,12 @@ impl NeuralNetwork {
         self.weights_hidden_output = in_network.weights_hidden_output;
         self.connections_input_hidden = in_network.connections_input_hidden;
         self.connections_hidden_output = in_network.connections_hidden_output;
-        self.hidden_activations = in_network.hidden_activations;
-        self.final_activations = in_network.final_activations;
         self.hidden_biases = in_network.hidden_biases;
         self.final_biases = in_network.final_biases;
+        self.hidden_activation_functions = in_network.hidden_activation_functions;
+        self.final_activation_functions = in_network.final_activation_functions;
+        self.hidden_activation_arguments = in_network.hidden_activation_arguments;
+        self.final_activation_arguments = in_network.final_activation_arguments;
         Ok(())
     }
 }
