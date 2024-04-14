@@ -5,6 +5,7 @@ mod euchre;
 
 mod organism;
 
+use crate::euchre::enums::Team;
 use crate::euchre::game::play_euchre;
 use crate::organism::neural_network::NeuralNetwork;
 
@@ -24,10 +25,15 @@ fn main() {
             let mut nn2 = NeuralNetwork::new();
             nn1.init();
             nn2.init();
-            let winning_team = play_euchre(&nn2, &nn1, &nn2, &nn1);
-            println!("{:?}", winning_team);
-            let winning_team = play_euchre(&nn1, &nn2, &nn1, &nn2);
-            println!("{:?}", winning_team);
+            let (mut nn1_counter, mut nn2_counter) = (0, 0);
+            for _ in 0..100 {
+                let winning_team = play_euchre(&nn1, &nn2, &nn1, &nn2);
+                match winning_team {
+                    Team::NorthSouth => nn1_counter += 1,
+                    Team::EastWest => nn2_counter += 1,
+                }
+                println!("nn1: {}, nn2: {}", nn1_counter, nn2_counter);
+            }
 
             let nn3 = nn1.crossover(&nn2, 0.01, 0.1);
             nn3.save_to_file("model.bin")?;
