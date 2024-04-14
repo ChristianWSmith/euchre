@@ -128,9 +128,7 @@ impl NeuralNetwork {
     ) -> f64 {
         let mut rng = rand::thread_rng();
         match activation_function {
-            ActivationFunctionType::Sigmoid => {
-                activation_argument + rng.gen_range(-*mutation_magnitude..*mutation_magnitude)
-            }
+            ActivationFunctionType::Sigmoid => 0.0,
             ActivationFunctionType::LeakyRelu => 0.0f64.max(
                 activation_argument
                     + rng.gen_range(-*mutation_magnitude * 0.1..*mutation_magnitude * 0.1),
