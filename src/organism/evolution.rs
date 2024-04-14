@@ -29,7 +29,7 @@ pub struct Organism {
 }
 
 // must be a multiple of 4
-pub const POPULATION_SIZE: usize = 8;
+pub const POPULATION_SIZE: usize = 4;
 const BREEDING_POOL_SIZE: usize = POPULATION_SIZE / 2;
 
 fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
@@ -73,7 +73,6 @@ pub fn evolve(generations: usize) {
 
         let mut population_indices: [usize; POPULATION_SIZE] = POPULATION_INDICES.clone();
         population_indices.shuffle(&mut rand::thread_rng());
-        println!("{:?}", population_indices);
         for i in 0..BREEDING_POOL_SIZE {
             match play_match(
                 &organisms[population_indices[i * 2]],
@@ -86,13 +85,13 @@ pub fn evolve(generations: usize) {
 
         let mut rng = thread_rng();
         breeder_indices.sort();
-        println!("{:?}", breeder_indices);
         let mut check_cursor: usize = 0;
         for i in 0..POPULATION_SIZE {
             if check_cursor < BREEDING_POOL_SIZE && breeder_indices[check_cursor] == i {
                 organisms[i].lifetime += 1;
                 check_cursor += 1;
             } else {
+                // TODO: disallow self crossover
                 organisms[i] = Organism {
                     brain: Some(
                         organisms[breeder_indices[rng.gen_range(0..BREEDING_POOL_SIZE - 1)]]

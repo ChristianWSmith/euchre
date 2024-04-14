@@ -10,7 +10,7 @@ use crate::organism::evolution::Organism;
 use crate::organism::evolution::POPULATION_SIZE;
 
 fn main() {
-    // TODO: figure this out
+    // TODO: figure this out, idk why 21 works
     let stack_size: usize = mem::size_of::<Organism>() * (POPULATION_SIZE + 21);
 
     let handle = thread::Builder::new()
