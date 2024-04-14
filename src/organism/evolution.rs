@@ -1,8 +1,10 @@
+use std::{error::Error, fs};
+
 use crate::euchre::{enums::Team, game::play_euchre};
 
 use super::neural_network::NeuralNetwork;
 use lazy_static::lazy_static;
-use rand::{seq::SliceRandom, thread_rng, Rng};
+use rand::{seq::SliceRandom, thread_rng};
 
 lazy_static! {
     static ref POPULATION_INDICES: [usize; POPULATION_SIZE] = {
@@ -53,7 +55,8 @@ fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     panic!("couldn't finish match")
 }
 
-pub fn evolve(generations: usize) -> Organism {
+pub fn evolve(generations: usize) -> Result<Organism, Box<dyn Error>> {
+    // Initialize
     let mut organisms: [Organism; POPULATION_SIZE] = [Organism {
         brain: None,
         lifetime: 0,
@@ -66,8 +69,8 @@ pub fn evolve(generations: usize) -> Organism {
         organisms[i].brain = Some(nn);
     }
 
+    // Run Generations
     let mut generation = 0;
-
     while generation < generations {
         generation += 1;
 
@@ -91,17 +94,15 @@ pub fn evolve(generations: usize) -> Organism {
                 organisms[i].lifetime += 1;
                 check_cursor += 1;
             } else {
-                // TODO: disallow self crossover
+                let parent_indexes =
+                    rand::seq::index::sample(&mut rng, BREEDING_POOL_SIZE, 2).into_vec();
                 organisms[i] = Organism {
                     brain: Some(
-                        organisms[breeder_indices[rng.gen_range(0..BREEDING_POOL_SIZE - 1)]]
+                        organisms[breeder_indices[parent_indexes[0]]]
                             .brain
                             .unwrap()
                             .crossover(
-                                &organisms
-                                    [breeder_indices[rng.gen_range(0..BREEDING_POOL_SIZE - 1)]]
-                                .brain
-                                .unwrap(),
+                                &organisms[breeder_indices[parent_indexes[1]]].brain.unwrap(),
                                 0.01,
                                 0.1,
                             ),
@@ -113,14 +114,43 @@ pub fn evolve(generations: usize) -> Organism {
         }
 
         println!("Generation {}", generation);
+        fs::create_dir_all(format!("out/{}", generation))?;
         for i in 0..POPULATION_SIZE {
             println!(
-                "lifetime: {}, generation: {}",
-                organisms[i].lifetime, organisms[i].generation
+                "index: {}, lifetime: {}, generation: {}",
+                i, organisms[i].lifetime, organisms[i].generation
             );
+            organisms[i].brain.unwrap().save_to_file(
+                format!(
+                    "out/{}/index({})-lifetime({})-generation({}).bin",
+                    generation, i, organisms[i].lifetime, organisms[i].generation
+                )
+                .as_str(),
+            )?;
         }
     }
 
-    // TODO: crown a champion?
-    return organisms[0];
+    // Round Robin for Champ
+    println!("Round Robin");
+    let mut wins: [usize; POPULATION_SIZE] = [0; POPULATION_SIZE];
+    let total_matches = (POPULATION_SIZE * (POPULATION_SIZE - 1)) / 2;
+    let mut match_count = 0;
+    for i in 0..POPULATION_SIZE {
+        for j in i + 1..POPULATION_SIZE {
+            match_count += 1;
+            match play_match(&organisms[i], &organisms[j]) {
+                true => wins[i] += 1,
+                false => wins[j] += 1,
+            }
+            println!("champ match {}/{}, {:?}", match_count, total_matches, wins);
+        }
+    }
+    let max_index = wins
+        .iter()
+        .enumerate()
+        .max_by_key(|&(_, val)| val)
+        .map(|(idx, _)| idx)
+        .unwrap();
+    println!("{:?}", wins);
+    return Ok(organisms[max_index]);
 }
