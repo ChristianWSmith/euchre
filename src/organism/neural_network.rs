@@ -65,14 +65,6 @@ impl NeuralNetwork {
         }
     }
 
-    fn default_bias(activation_function: &ActivationFunctionType) -> f64 {
-        let mut rng = rand::thread_rng();
-        match activation_function {
-            ActivationFunctionType::Sigmoid => rng.gen_range(-0.5..0.5),
-            ActivationFunctionType::LeakyRelu => rng.gen_range(0.0..0.1),
-        }
-    }
-
     pub fn init(&mut self) {
         let mut rng = rand::thread_rng();
         for i in 0..StateIndex::COUNT {
@@ -96,6 +88,14 @@ impl NeuralNetwork {
         for i in 0..ActionIndex::COUNT {
             self.final_activations[i] = rng.gen();
             self.final_biases[i] = NeuralNetwork::default_bias(&self.final_activations[i]);
+        }
+    }
+
+    fn default_bias(activation_function: &ActivationFunctionType) -> f64 {
+        let mut rng = rand::thread_rng();
+        match activation_function {
+            ActivationFunctionType::Sigmoid => rng.gen_range(-0.5..0.5),
+            ActivationFunctionType::LeakyRelu => rng.gen_range(0.0..0.1),
         }
     }
 
@@ -166,31 +166,28 @@ impl NeuralNetwork {
         for i in 0..StateIndex::COUNT {
             for j in 0..HIDDEN_NODES {
                 if rng.gen::<f64>() < mutation_rate {
+                    child.connections_input_hidden[i][j] = !child.connections_input_hidden[i][j];
+                }
+                if child.connections_input_hidden[i][j] && rng.gen::<f64>() < mutation_rate {
                     child.weights_input_hidden[i][j] +=
                         rng.gen_range(-mutation_magnitude..mutation_magnitude);
-                }
-                // TODO: structural mutation rate
-                if rng.gen::<f64>() < mutation_rate {
-                    child.connections_input_hidden[i][j] = !child.connections_input_hidden[i][j];
                 }
             }
         }
         for i in 0..HIDDEN_NODES {
             for j in 0..ActionIndex::COUNT {
                 if rng.gen::<f64>() < mutation_rate {
+                    child.connections_hidden_output[i][j] = !child.connections_hidden_output[i][j];
+                }
+                if child.connections_hidden_output[i][j] && rng.gen::<f64>() < mutation_rate {
                     child.weights_hidden_output[i][j] +=
                         rng.gen_range(-mutation_magnitude..mutation_magnitude);
-                }
-                // TODO: structural mutation rate
-                if rng.gen::<f64>() < mutation_rate {
-                    child.connections_hidden_output[i][j] = !child.connections_hidden_output[i][j];
                 }
             }
         }
 
         // Mutation - Activations and Biases
         for i in 0..HIDDEN_NODES {
-            // TODO: structural mutation rate
             if rng.gen::<f64>() < mutation_rate {
                 child.hidden_activations[i] = rng.gen();
                 child.hidden_biases[i] = NeuralNetwork::default_bias(&child.hidden_activations[i]);
@@ -201,7 +198,6 @@ impl NeuralNetwork {
             }
         }
         for i in 0..ActionIndex::COUNT {
-            // TODO: structural mutation rate
             if rng.gen::<f64>() < mutation_rate {
                 child.final_activations[i] = rng.gen();
                 child.final_biases[i] = NeuralNetwork::default_bias(&child.final_activations[i]);
@@ -273,7 +269,6 @@ impl NeuralNetwork {
     }
 
     fn to_bytes(&self) -> &[u8] {
-        // Get the raw bytes of the struct
         let raw_bytes: &[u8] = unsafe {
             std::slice::from_raw_parts(
                 self as *const _ as *const u8,
