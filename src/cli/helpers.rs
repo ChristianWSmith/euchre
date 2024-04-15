@@ -2,7 +2,13 @@ use std::{mem, thread};
 
 use crate::organism::evolution::{evolve, Organism};
 
+// TODO: better error handling here
 pub fn evolve_cli(population_size: usize, generations: usize, out_dir: String) {
+    println!(
+        "Population Size: {}, Generations: {}",
+        population_size, generations
+    );
+
     // max supported population size + 31, don't ask why
     let stack_size: usize = mem::size_of::<Organism>() * (2048 + 31);
 
