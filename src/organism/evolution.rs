@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{
     error::Error,
     fs,
@@ -169,8 +170,6 @@ pub fn evolve<
 
     // Round Robin for Champ
     println!("Round Robin");
-    let mut wins: [usize; POPULATION_SIZE] = [0; POPULATION_SIZE];
-    let match_count = Arc::new(Mutex::new(0));
     let mut matchup_index = 0;
     let mut matchups: [(usize, usize); ROUND_ROBIN_COUNT] = [(0, 0); ROUND_ROBIN_COUNT];
     for i in 0..POPULATION_SIZE {
@@ -179,18 +178,16 @@ pub fn evolve<
             matchup_index += 1;
         }
     }
+
+    let mut wins: [usize; POPULATION_SIZE] = [0; POPULATION_SIZE];
+    let match_count = Arc::new(Mutex::new(0));
+    let mut atomic_wins = Vec::with_capacity(POPULATION_SIZE);
+    for _ in 0..POPULATION_SIZE {
+        atomic_wins.push(AtomicUsize::new(0));
+    }
+    let atomic_wins = Arc::new(Mutex::new(atomic_wins));
     pool.install(|| {
-        matchups.into_iter().for_each(|(i, j)| {
-            // Declare local variables for wins[i] / wins[j]
-            let mut local_wins_i = 0;
-            let mut local_wins_j = 0;
-
-            // Perform match and update local variables
-            match play_match(&organisms[i], &organisms[j]) {
-                true => local_wins_i += 1,
-                false => local_wins_j += 1,
-            }
-
+        matchups.par_iter().for_each(|(i, j)| {
             let match_count_val;
             {
                 let mut match_count_guard = match_count.lock().unwrap();
@@ -202,10 +199,20 @@ pub fn evolve<
                 match_count_val, ROUND_ROBIN_COUNT
             );
 
-            wins[i] += local_wins_i;
-            wins[j] += local_wins_j;
+            // Perform match and update local variables
+            let winner_index = match play_match(&organisms[*i], &organisms[*j]) {
+                true => *i,
+                false => *j,
+            };
+            let wins_guard = atomic_wins.lock().unwrap();
+            wins_guard[winner_index].fetch_add(1, Ordering::SeqCst);
         });
     });
+
+    let wins_guard = atomic_wins.lock().unwrap();
+    for (i, win_count) in wins_guard.iter().enumerate() {
+        wins[i] = win_count.load(Ordering::SeqCst);
+    }
 
     let max_index = wins
         .iter()
