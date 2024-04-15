@@ -28,6 +28,8 @@ enum Command {
     Evolve {
         #[structopt(short, long)]
         generations: Option<usize>,
+        #[structopt(short, long)]
+        out_dir: Option<String>,
     },
 }
 
@@ -35,24 +37,28 @@ fn main() {
     let args = Cli::from_args();
 
     match args.command {
-        Command::Evolve { generations } => match generations {
-            Some(x) => evolve_cli(x),
-            None => println!("You need to specify a number of generations"),
-        },
+        Command::Evolve {
+            generations,
+            out_dir,
+        } => {
+            evolve_cli(
+                generations.unwrap_or_else(|| 10),
+                out_dir.unwrap_or_else(|| "out".to_string()),
+            );
+        }
     };
 }
 
-fn evolve_cli(generations: usize) {
+fn evolve_cli(generations: usize, out_dir: String) {
     // TODO: figure this out, i'm at a total loss
     let stack_size: usize = mem::size_of::<Organism>() * (POPULATION_SIZE + 31);
 
     let handle = thread::Builder::new()
         .stack_size(stack_size)
         .spawn(move || -> std::io::Result<()> {
-            let organism = evolve(generations).unwrap();
+            let organism = evolve(generations, out_dir.clone()).unwrap();
             let mut nn1 = NeuralNetwork::new();
-            organism.brain.unwrap().save_to_file("out/champion.bin")?;
-            nn1.load_from_file("out/champion.bin")?;
+            nn1.load_from_file(format!("{}/champion.bin", out_dir.as_str()).as_str())?;
             assert_eq!(organism.brain.unwrap(), nn1);
             println!("Saving/loading success");
             Ok(())

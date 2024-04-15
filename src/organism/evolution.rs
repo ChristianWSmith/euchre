@@ -55,7 +55,7 @@ fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     panic!("couldn't finish match")
 }
 
-pub fn evolve(generations: usize) -> Result<Organism, Box<dyn Error>> {
+pub fn evolve(generations: usize, out_dir: String) -> Result<Organism, Box<dyn Error>> {
     // Initialize
     let mut organisms: [Organism; POPULATION_SIZE] = [Organism {
         brain: None,
@@ -114,7 +114,7 @@ pub fn evolve(generations: usize) -> Result<Organism, Box<dyn Error>> {
         }
 
         println!("Generation {}", generation);
-        fs::create_dir_all(format!("out/gen_{}", generation))?;
+        fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
         for i in 0..POPULATION_SIZE {
             println!(
                 "index: {}, lifetime: {}, generation: {}",
@@ -122,8 +122,8 @@ pub fn evolve(generations: usize) -> Result<Organism, Box<dyn Error>> {
             );
             organisms[i].brain.unwrap().save_to_file(
                 format!(
-                    "out/gen_{}/index({})-lifetime({})-generation({}).bin",
-                    generation, i, organisms[i].lifetime, organisms[i].generation
+                    "{}/gen_{}/index({})-lifetime({})-generation({}).bin",
+                    out_dir, generation, i, organisms[i].lifetime, organisms[i].generation
                 )
                 .as_str(),
             )?;
@@ -152,5 +152,9 @@ pub fn evolve(generations: usize) -> Result<Organism, Box<dyn Error>> {
         .map(|(idx, _)| idx)
         .unwrap();
     println!("{:?}", wins);
+    organisms[max_index]
+        .brain
+        .unwrap()
+        .save_to_file(format!("{}/champion.bin", out_dir).as_str())?;
     return Ok(organisms[max_index]);
 }
