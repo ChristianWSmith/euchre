@@ -3,25 +3,7 @@ use std::{error::Error, fs};
 use crate::euchre::{enums::Team, game::play_euchre};
 
 use super::neural_network::NeuralNetwork;
-use lazy_static::lazy_static;
 use rand::{seq::SliceRandom, thread_rng};
-
-lazy_static! {
-    static ref POPULATION_INDICES: [usize; POPULATION_SIZE] = {
-        let mut indices = [0; POPULATION_SIZE];
-        for i in 0..POPULATION_SIZE {
-            indices[i] = i;
-        }
-        indices
-    };
-    static ref BREEDER_INDICES: [usize; BREEDING_POOL_SIZE] = {
-        let mut indices = [0; BREEDING_POOL_SIZE];
-        for i in 0..BREEDING_POOL_SIZE {
-            indices[i] = i;
-        }
-        indices
-    };
-}
 
 #[derive(Clone, Copy)]
 pub struct Organism {
@@ -31,8 +13,6 @@ pub struct Organism {
 }
 
 // must be a multiple of 4
-pub const POPULATION_SIZE: usize = 64;
-const BREEDING_POOL_SIZE: usize = POPULATION_SIZE / 2;
 
 fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     let (mut organism1_wins, mut orgaism2_wins) = (0, 0);
@@ -55,7 +35,10 @@ fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     panic!("couldn't finish match")
 }
 
-pub fn evolve(generations: usize, out_dir: String) -> Result<Organism, Box<dyn Error>> {
+pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
+    generations: usize,
+    out_dir: String,
+) -> Result<Organism, Box<dyn Error>> {
     // Initialize
     let mut organisms: [Organism; POPULATION_SIZE] = [Organism {
         brain: None,
@@ -69,12 +52,16 @@ pub fn evolve(generations: usize, out_dir: String) -> Result<Organism, Box<dyn E
         organisms[i].brain = Some(nn);
     }
 
+    let mut population_indices = [0; POPULATION_SIZE];
+    for i in 0..POPULATION_SIZE {
+        population_indices[i] = i;
+    }
+
     // Run Generations
     let mut generation = 0;
     while generation < generations {
         generation += 1;
 
-        let mut population_indices: [usize; POPULATION_SIZE] = POPULATION_INDICES.clone();
         population_indices.shuffle(&mut rand::thread_rng());
         for i in 0..BREEDING_POOL_SIZE {
             match play_match(
