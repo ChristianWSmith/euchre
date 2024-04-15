@@ -26,6 +26,19 @@ enum Command {
         #[structopt(short, long)]
         out_dir: Option<String>,
     },
+    #[structopt(about = "Run a game between agents")]
+    Compete {
+        #[structopt(short, long)]
+        north_player: String,
+        #[structopt(short, long)]
+        east_player: String,
+        #[structopt(short, long)]
+        south_player: String,
+        #[structopt(short, long)]
+        west_player: String,
+        #[structopt(short, long)]
+        games: Option<usize>,
+    },
 }
 
 fn main() {
@@ -41,6 +54,21 @@ fn main() {
                 population_size.unwrap_or_else(|| 4),
                 generations.unwrap_or_else(|| 10),
                 out_dir.unwrap_or_else(|| "out".to_string()),
+            );
+        }
+        Command::Compete {
+            north_player,
+            east_player,
+            south_player,
+            west_player,
+            games,
+        } => {
+            compete_cli(
+                north_player,
+                east_player,
+                south_player,
+                west_player,
+                games.unwrap_or_else(|| 3),
             );
         }
     };
