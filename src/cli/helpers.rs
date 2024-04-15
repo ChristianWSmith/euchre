@@ -9,7 +9,12 @@ use crate::{
 };
 
 // TODO: better error handling here
-pub fn evolve_cli(population_size: usize, generations: usize, out_dir: String) {
+pub fn evolve_cli(
+    population_size: usize,
+    generations: usize,
+    thread_count: usize,
+    out_dir: String,
+) {
     println!(
         "Population Size: {}, Generations: {}",
         population_size, generations
@@ -22,16 +27,16 @@ pub fn evolve_cli(population_size: usize, generations: usize, out_dir: String) {
         .stack_size(stack_size)
         .spawn(move || -> std::io::Result<()> {
             match population_size {
-                2048 => evolve::<2048, 1024>(generations, out_dir.clone()).unwrap(),
-                1024 => evolve::<1024, 512>(generations, out_dir.clone()).unwrap(),
-                512 => evolve::<512, 256>(generations, out_dir.clone()).unwrap(),
-                256 => evolve::<256, 128>(generations, out_dir.clone()).unwrap(),
-                128 => evolve::<128, 64>(generations, out_dir.clone()).unwrap(),
-                64 => evolve::<64, 32>(generations, out_dir.clone()).unwrap(),
-                32 => evolve::<32, 16>(generations, out_dir.clone()).unwrap(),
-                16 => evolve::<16, 8>(generations, out_dir.clone()).unwrap(),
-                8 => evolve::<8, 4>(generations, out_dir.clone()).unwrap(),
-                4 => evolve::<4, 2>(generations, out_dir.clone()).unwrap(),
+                2048 => evolve::<2048, 1024, {(2048 * (2048 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                1024 => evolve::<1024, 512, {(1024 * (1024 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                512 => evolve::<512, 256, {(512 * (512 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                256 => evolve::<256, 128, {(256 * (256 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                128 => evolve::<128, 64, {(128 * (128 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                64 => evolve::<64, 32, {(64 * (64 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                32 => evolve::<32, 16, {(32 * (32 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                16 => evolve::<16, 8, {(16 * (16 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                8 => evolve::<8, 4, {(8 * (8 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
+                4 => evolve::<4, 2, {(4 * (4 - 1)) / 2}>(generations, out_dir.clone(), thread_count, stack_size).unwrap(),
                 _ => panic!("Invalid population size.  Valid populations sizes: [2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4]")
             };
             Ok(())

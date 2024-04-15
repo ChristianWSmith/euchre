@@ -1,9 +1,14 @@
-use std::{error::Error, fs};
+use std::{
+    error::Error,
+    fs,
+    sync::{Arc, Mutex},
+};
 
 use crate::euchre::{enums::Team, game::play_euchre};
 
 use super::neural_network::NeuralNetwork;
 use rand::{seq::SliceRandom, thread_rng};
+use rayon::prelude::*;
 
 #[derive(Clone, Copy)]
 pub struct Organism {
@@ -35,9 +40,15 @@ fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     panic!("couldn't finish match")
 }
 
-pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
+pub fn evolve<
+    const POPULATION_SIZE: usize,
+    const BREEDING_POOL_SIZE: usize,
+    const ROUND_ROBIN_COUNT: usize,
+>(
     generations: usize,
     out_dir: String,
+    thread_count: usize,
+    stack_size: usize,
 ) -> Result<Organism, Box<dyn Error>> {
     // Initialize
     let mut organisms: [Organism; POPULATION_SIZE] = [Organism {
@@ -45,7 +56,13 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
         lifetime: 0,
         generation: 0,
     }; POPULATION_SIZE];
+    let mut children: [Organism; BREEDING_POOL_SIZE] = [Organism {
+        brain: None,
+        lifetime: 0,
+        generation: 0,
+    }; BREEDING_POOL_SIZE];
     let mut breeder_indices: [usize; BREEDING_POOL_SIZE] = [0; BREEDING_POOL_SIZE];
+    let mut rng = thread_rng();
     for i in 0..POPULATION_SIZE {
         let mut nn = NeuralNetwork::new();
         nn.init();
@@ -56,40 +73,59 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
     for i in 0..POPULATION_SIZE {
         population_indices[i] = i;
     }
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(thread_count)
+        .stack_size(stack_size)
+        .build()
+        .unwrap();
 
     // Run Generations
     let mut generation = 0;
     while generation < generations {
         generation += 1;
-
         population_indices.shuffle(&mut rand::thread_rng());
-        for i in 0..BREEDING_POOL_SIZE {
-            match play_match(
-                &organisms[population_indices[i * 2]],
-                &organisms[population_indices[i * 2 + 1]],
-            ) {
-                true => breeder_indices[i] = population_indices[i * 2],
-                false => breeder_indices[i] = population_indices[i * 2 + 1],
-            }
-        }
 
-        let mut rng = thread_rng();
+        println!("Generation {} - Playing Games", generation);
+        pool.install(|| {
+            breeder_indices
+                .par_iter_mut()
+                .enumerate()
+                .for_each(|(i, breed_index)| {
+                    let index = i * 2;
+                    *breed_index = if play_match(
+                        &organisms[population_indices[index]],
+                        &organisms[population_indices[index + 1]],
+                    ) {
+                        population_indices[index]
+                    } else {
+                        population_indices[index + 1]
+                    };
+                });
+        });
+
+        println!("Generation {} - Breeding Winners", generation);
+        // Select parents
+        let mut parent_matchings: [(usize, usize); BREEDING_POOL_SIZE] =
+            [(0, 0); BREEDING_POOL_SIZE];
+        for i in 0..BREEDING_POOL_SIZE {
+            let parent_indexes =
+                rand::seq::index::sample(&mut rng, BREEDING_POOL_SIZE, 2).into_vec();
+            parent_matchings[i] = (parent_indexes[0], parent_indexes[1]);
+        }
         breeder_indices.sort();
-        let mut check_cursor: usize = 0;
-        for i in 0..POPULATION_SIZE {
-            if check_cursor < BREEDING_POOL_SIZE && breeder_indices[check_cursor] == i {
-                organisms[i].lifetime += 1;
-                check_cursor += 1;
-            } else {
-                let parent_indexes =
-                    rand::seq::index::sample(&mut rng, BREEDING_POOL_SIZE, 2).into_vec();
-                organisms[i] = Organism {
+
+        // Do breeding
+        pool.install(|| {
+            children.par_iter_mut().enumerate().for_each(|(i, child)| {
+                let (j, k) = parent_matchings[i];
+                *child = Organism {
                     brain: Some(
-                        organisms[breeder_indices[parent_indexes[0]]]
+                        organisms[breeder_indices[j]]
                             .brain
+                            .as_ref()
                             .unwrap()
                             .crossover(
-                                &organisms[breeder_indices[parent_indexes[1]]].brain.unwrap(),
+                                organisms[breeder_indices[k]].brain.as_ref().unwrap(),
                                 0.01,
                                 0.1,
                             ),
@@ -97,48 +133,86 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
                     lifetime: 0,
                     generation: generation,
                 };
+            });
+        });
+
+        // Write children back to organisms
+        let mut check_cursor: usize = 0;
+        let mut child_cursor = 0;
+        for i in 0..POPULATION_SIZE {
+            if check_cursor < BREEDING_POOL_SIZE && breeder_indices[check_cursor] == i {
+                organisms[i].lifetime += 1;
+                check_cursor += 1;
+            } else {
+                organisms[i] = children[child_cursor];
+                child_cursor += 1;
             }
         }
 
-        println!("Generation {}", generation);
+        println!("Generation {} - Saving Generation", generation);
         fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
-        for i in 0..POPULATION_SIZE {
-            println!(
-                "index: {}, lifetime: {}, generation: {}",
-                i, organisms[i].lifetime, organisms[i].generation
-            );
-            organisms[i].brain.unwrap().save_to_file(
-                format!(
+        pool.install(|| {
+            organisms.par_iter().enumerate().for_each(|(i, organism)| {
+                let filename = format!(
                     "{}/gen_{}/index({})-lifetime({})-generation({}).bin",
-                    out_dir, generation, i, organisms[i].lifetime, organisms[i].generation
-                )
-                .as_str(),
-            )?;
-        }
+                    out_dir, generation, i, organism.lifetime, organism.generation
+                );
+                organism
+                    .brain
+                    .as_ref()
+                    .unwrap()
+                    .save_to_file(&filename)
+                    .unwrap();
+            });
+        });
     }
 
     // Round Robin for Champ
     println!("Round Robin");
     let mut wins: [usize; POPULATION_SIZE] = [0; POPULATION_SIZE];
-    let total_matches = (POPULATION_SIZE * (POPULATION_SIZE - 1)) / 2;
-    let mut match_count = 0;
+    let match_count = Arc::new(Mutex::new(0));
+    let mut matchup_index = 0;
+    let mut matchups: [(usize, usize); ROUND_ROBIN_COUNT] = [(0, 0); ROUND_ROBIN_COUNT];
     for i in 0..POPULATION_SIZE {
         for j in i + 1..POPULATION_SIZE {
-            match_count += 1;
-            match play_match(&organisms[i], &organisms[j]) {
-                true => wins[i] += 1,
-                false => wins[j] += 1,
-            }
-            println!("champ match {}/{}, {:?}", match_count, total_matches, wins);
+            matchups[matchup_index] = (i, j);
+            matchup_index += 1;
         }
     }
+    pool.install(|| {
+        matchups.into_iter().for_each(|(i, j)| {
+            // Declare local variables for wins[i] / wins[j]
+            let mut local_wins_i = 0;
+            let mut local_wins_j = 0;
+
+            // Perform match and update local variables
+            match play_match(&organisms[i], &organisms[j]) {
+                true => local_wins_i += 1,
+                false => local_wins_j += 1,
+            }
+
+            let match_count_val;
+            {
+                let mut match_count_guard = match_count.lock().unwrap();
+                *match_count_guard += 1;
+                match_count_val = *match_count_guard;
+            }
+            println!(
+                "Round Robin Match {}/{}",
+                match_count_val, ROUND_ROBIN_COUNT
+            );
+
+            wins[i] += local_wins_i;
+            wins[j] += local_wins_j;
+        });
+    });
+
     let max_index = wins
         .iter()
         .enumerate()
         .max_by_key(|&(_, val)| val)
         .map(|(idx, _)| idx)
         .unwrap();
-    println!("{:?}", wins);
     organisms[max_index]
         .brain
         .unwrap()

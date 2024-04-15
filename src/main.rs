@@ -24,6 +24,8 @@ enum Command {
         #[structopt(short, long)]
         generations: Option<usize>,
         #[structopt(short, long)]
+        thread_count: Option<usize>,
+        #[structopt(short, long)]
         out_dir: Option<String>,
     },
     #[structopt(about = "Run a game between agents")]
@@ -48,11 +50,13 @@ fn main() {
         Command::Evolve {
             population_size,
             generations,
+            thread_count,
             out_dir,
         } => {
             evolve_cli(
                 population_size.unwrap_or_else(|| 4),
                 generations.unwrap_or_else(|| 10),
+                thread_count.unwrap_or_else(|| 1),
                 out_dir.unwrap_or_else(|| "out".to_string()),
             );
         }
