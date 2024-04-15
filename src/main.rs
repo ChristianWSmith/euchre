@@ -18,7 +18,7 @@ fn main() {
     let handle = thread::Builder::new()
         .stack_size(stack_size)
         .spawn(|| -> std::io::Result<()> {
-            let organism = evolve(1).unwrap();
+            let organism = evolve(100).unwrap();
             let mut nn1 = NeuralNetwork::new();
             organism.brain.unwrap().save_to_file("out/champion.bin")?;
             nn1.load_from_file("out/champion.bin")?;

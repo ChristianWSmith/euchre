@@ -31,7 +31,7 @@ pub struct Organism {
 }
 
 // must be a multiple of 4
-pub const POPULATION_SIZE: usize = 4;
+pub const POPULATION_SIZE: usize = 64;
 const BREEDING_POOL_SIZE: usize = POPULATION_SIZE / 2;
 
 fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
@@ -114,7 +114,7 @@ pub fn evolve(generations: usize) -> Result<Organism, Box<dyn Error>> {
         }
 
         println!("Generation {}", generation);
-        fs::create_dir_all(format!("out/{}", generation))?;
+        fs::create_dir_all(format!("out/gen_{}", generation))?;
         for i in 0..POPULATION_SIZE {
             println!(
                 "index: {}, lifetime: {}, generation: {}",
@@ -122,7 +122,7 @@ pub fn evolve(generations: usize) -> Result<Organism, Box<dyn Error>> {
             );
             organisms[i].brain.unwrap().save_to_file(
                 format!(
-                    "out/{}/index({})-lifetime({})-generation({}).bin",
+                    "out/gen_{}/index({})-lifetime({})-generation({}).bin",
                     generation, i, organisms[i].lifetime, organisms[i].generation
                 )
                 .as_str(),

@@ -400,7 +400,7 @@ fn run_bid_suit(
     position_3_input: &mut NeuralNetworkInput,
     upcard_suit: &Suit,
 ) -> (Option<RelativeTeam>, Option<Suit>, bool, bool, bool, bool) {
-    let available_actions = get_bid_suit_available_actions(upcard_suit);
+    let mut available_actions = get_bid_suit_available_actions(upcard_suit);
     match get_bid_suit_action(
         position_1_player,
         position_1_input,
@@ -674,6 +674,8 @@ fn run_bid_suit(
         None => {}
         _ => panic!("invalid bid suit action result"),
     }
+    // stick the dealer, or else the agents learn that they can "not lose" by always passing
+    available_actions[ActionIndex::PassSuit as usize] = false;
     match get_bid_suit_action(
         dealer_player,
         dealer_input,
