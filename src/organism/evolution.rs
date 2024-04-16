@@ -219,9 +219,9 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
             }
         }
 
+        fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
         if !no_gen_save {
             println!("Generation {} - Saving Generation", generation);
-            fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
             pool.install(|| {
                 organisms.par_iter().enumerate().for_each(|(i, organism)| {
                     let filename = format!(
