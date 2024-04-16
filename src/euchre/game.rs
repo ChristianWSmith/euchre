@@ -1301,6 +1301,7 @@ fn get_trick_action(
     if *skip {
         return;
     }
+    // TODO : short circuit this on last trick
     let available_actions = get_play_available_actions(hand, &lead_suit);
     let action = player.get_action(input, &available_actions);
     let card = play_from_hand(hand, &action);
