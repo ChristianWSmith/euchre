@@ -219,8 +219,8 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
             }
         }
 
-        fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
         if !no_gen_save {
+            fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
             println!("Generation {} - Saving Generation", generation);
             pool.install(|| {
                 organisms.par_iter().enumerate().for_each(|(i, organism)| {
@@ -291,6 +291,7 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
         });
     }
 
+    fs::create_dir_all(format!("{}", out_dir))?;
     let alive_guard = alive.lock().unwrap();
     for (i, alive) in alive_guard.iter().enumerate() {
         if alive.load(Ordering::SeqCst) {
