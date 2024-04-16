@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::{
     error::Error,
     fs,
@@ -41,17 +41,14 @@ fn play_match(organism1: &Organism, organism2: &Organism) -> bool {
     panic!("couldn't finish match")
 }
 
-pub fn evolve<
-    const POPULATION_SIZE: usize,
-    const BREEDING_POOL_SIZE: usize,
-    const ROUND_ROBIN_COUNT: usize,
->(
+pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
     generations: usize,
     out_dir: String,
     thread_count: usize,
     stack_size: usize,
 ) -> Result<Organism, Box<dyn Error>> {
     // Initialize
+    println!("Initializing");
     let mut organisms: [Organism; POPULATION_SIZE] = [Organism {
         brain: None,
         lifetime: 0,
@@ -64,34 +61,66 @@ pub fn evolve<
     }; BREEDING_POOL_SIZE];
     let mut breeder_indices: [usize; BREEDING_POOL_SIZE] = [0; BREEDING_POOL_SIZE];
     let mut rng = thread_rng();
-    for i in 0..POPULATION_SIZE {
-        let mut nn = NeuralNetwork::new();
-        nn.init();
-        organisms[i].brain = Some(nn);
-    }
 
-    let mut population_indices = [0; POPULATION_SIZE];
-    for i in 0..POPULATION_SIZE {
-        population_indices[i] = i;
-    }
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(thread_count)
         .stack_size(stack_size)
         .build()
         .unwrap();
 
+    println!("Spawning Organisms");
+
+    let organism_count = Arc::new(Mutex::new(0));
+    pool.install(|| {
+        organisms
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(_, organism)| {
+                let organism_count_val;
+                {
+                    let mut organism_count_guard = organism_count.lock().unwrap();
+                    *organism_count_guard += 1;
+                    organism_count_val = *organism_count_guard;
+                }
+                println!(
+                    "Spawning Organisms - {}/{}",
+                    organism_count_val, POPULATION_SIZE
+                );
+                let mut nn = NeuralNetwork::new();
+                nn.init();
+                (*organism).brain = Some(nn);
+            });
+    });
+
+    let mut population_indices = [0; POPULATION_SIZE];
+    for i in 0..POPULATION_SIZE {
+        population_indices[i] = i;
+    }
+
     // Run Generations
+    println!("Generations");
     let mut generation = 0;
     while generation < generations {
         generation += 1;
         population_indices.shuffle(&mut rand::thread_rng());
 
         println!("Generation {} - Playing Games", generation);
+        let match_count = Arc::new(Mutex::new(0));
         pool.install(|| {
             breeder_indices
                 .par_iter_mut()
                 .enumerate()
                 .for_each(|(i, breed_index)| {
+                    let match_count_val;
+                    {
+                        let mut match_count_guard = match_count.lock().unwrap();
+                        *match_count_guard += 1;
+                        match_count_val = *match_count_guard;
+                    }
+                    println!(
+                        "Generation {} - Match {}/{}",
+                        generation, match_count_val, BREEDING_POOL_SIZE
+                    );
                     let index = i * 2;
                     *breed_index = if play_match(
                         &organisms[population_indices[index]],
@@ -104,7 +133,7 @@ pub fn evolve<
                 });
         });
 
-        println!("Generation {} - Breeding Winners", generation);
+        println!("Generation {} - Breeding Children", generation);
         // Select parents
         let mut parent_matchings: [(usize, usize); BREEDING_POOL_SIZE] =
             [(0, 0); BREEDING_POOL_SIZE];
@@ -114,10 +143,21 @@ pub fn evolve<
             parent_matchings[i] = (parent_indexes[0], parent_indexes[1]);
         }
         breeder_indices.sort();
+        let child_count = Arc::new(Mutex::new(0));
 
         // Do breeding
         pool.install(|| {
             children.par_iter_mut().enumerate().for_each(|(i, child)| {
+                let child_count_val;
+                {
+                    let mut child_count_guard = child_count.lock().unwrap();
+                    *child_count_guard += 1;
+                    child_count_val = *child_count_guard;
+                }
+                println!(
+                    "Generation {} - Breeding Child {}/{}",
+                    generation, child_count_val, BREEDING_POOL_SIZE
+                );
                 let (j, k) = parent_matchings[i];
                 *child = Organism {
                     brain: Some(
@@ -169,60 +209,67 @@ pub fn evolve<
     }
 
     // Round Robin for Champ
-    println!("Round Robin");
-    let mut matchup_index = 0;
-    let mut matchups: [(usize, usize); ROUND_ROBIN_COUNT] = [(0, 0); ROUND_ROBIN_COUNT];
-    for i in 0..POPULATION_SIZE {
-        for j in i + 1..POPULATION_SIZE {
-            matchups[matchup_index] = (i, j);
-            matchup_index += 1;
+    println!("Tournament");
+    let total_rounds = f64::log2(POPULATION_SIZE as f64) as usize;
+
+    let mut alive = Vec::with_capacity(POPULATION_SIZE);
+    for _ in 0..POPULATION_SIZE {
+        alive.push(AtomicBool::new(true));
+    }
+    let alive = Arc::new(Mutex::new(alive));
+
+    for round_number in 1..total_rounds + 1 {
+        println!("Tournament Round {}/{}", round_number, total_rounds);
+        let mut matchups: Vec<(usize, usize)> = Vec::with_capacity(POPULATION_SIZE / 2);
+        let mut next_matchup: Vec<usize> = Vec::with_capacity(2);
+        let alive_guard = alive.lock().unwrap();
+        for (i, alive) in alive_guard.iter().enumerate() {
+            if alive.load(Ordering::SeqCst) {
+                next_matchup.push(i);
+                if next_matchup.len() == 2 {
+                    matchups.push((next_matchup[0], next_matchup[1]));
+                    next_matchup.clear();
+                }
+            }
+        }
+        drop(alive_guard);
+        let match_count = Arc::new(Mutex::new(0));
+
+        pool.install(|| {
+            matchups.par_iter().for_each(|(i, j)| {
+                let match_count_val;
+                {
+                    let mut match_count_guard = match_count.lock().unwrap();
+                    *match_count_guard += 1;
+                    match_count_val = *match_count_guard;
+                }
+                println!(
+                    "Trounament Round {}/{} - Match {}/{}",
+                    round_number,
+                    total_rounds,
+                    match_count_val,
+                    matchups.len()
+                );
+                let loser_index = match play_match(&organisms[*i], &organisms[*j]) {
+                    true => *j,
+                    false => *i,
+                };
+                let alive_guard = alive.lock().unwrap();
+                alive_guard[loser_index].store(false, Ordering::SeqCst);
+            });
+        });
+    }
+
+    let alive_guard = alive.lock().unwrap();
+    for (i, alive) in alive_guard.iter().enumerate() {
+        if alive.load(Ordering::SeqCst) {
+            organisms[i]
+                .brain
+                .unwrap()
+                .save_to_file(format!("{}/champion.bin", out_dir).as_str())?;
+            return Ok(organisms[i]);
         }
     }
-
-    let mut wins: [usize; POPULATION_SIZE] = [0; POPULATION_SIZE];
-    let match_count = Arc::new(Mutex::new(0));
-    let mut atomic_wins = Vec::with_capacity(POPULATION_SIZE);
-    for _ in 0..POPULATION_SIZE {
-        atomic_wins.push(AtomicUsize::new(0));
-    }
-    let atomic_wins = Arc::new(Mutex::new(atomic_wins));
-    pool.install(|| {
-        matchups.par_iter().for_each(|(i, j)| {
-            let match_count_val;
-            {
-                let mut match_count_guard = match_count.lock().unwrap();
-                *match_count_guard += 1;
-                match_count_val = *match_count_guard;
-            }
-            println!(
-                "Round Robin Match {}/{}",
-                match_count_val, ROUND_ROBIN_COUNT
-            );
-
-            // Perform match and update local variables
-            let winner_index = match play_match(&organisms[*i], &organisms[*j]) {
-                true => *i,
-                false => *j,
-            };
-            let wins_guard = atomic_wins.lock().unwrap();
-            wins_guard[winner_index].fetch_add(1, Ordering::SeqCst);
-        });
-    });
-
-    let wins_guard = atomic_wins.lock().unwrap();
-    for (i, win_count) in wins_guard.iter().enumerate() {
-        wins[i] = win_count.load(Ordering::SeqCst);
-    }
-
-    let max_index = wins
-        .iter()
-        .enumerate()
-        .max_by_key(|&(_, val)| val)
-        .map(|(idx, _)| idx)
-        .unwrap();
-    organisms[max_index]
-        .brain
-        .unwrap()
-        .save_to_file(format!("{}/champion.bin", out_dir).as_str())?;
-    return Ok(organisms[max_index]);
+    drop(alive_guard);
+    panic!("no champion found");
 }
