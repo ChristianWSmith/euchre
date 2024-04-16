@@ -1301,9 +1301,19 @@ fn get_trick_action(
     if *skip {
         return;
     }
-    // TODO : short circuit this on last trick
-    let available_actions = get_play_available_actions(hand, &lead_suit);
-    let action = player.get_action(input, &available_actions);
+    let mut action: Option<ActionIndex> = None;
+    if *trick_index == TrickIndex::Fifth {
+        for card in hand.iter() {
+            if card.is_some() {
+                action = Some(get_card_play_action(&card.unwrap()));
+                break;
+            }
+        }
+    } else {
+        let available_actions = get_play_available_actions(hand, &lead_suit);
+        action = Some(player.get_action(input, &available_actions));
+    }
+    let action = action.unwrap();
     let card = play_from_hand(hand, &action);
     if card_wins(&card, &winning_card, &lead_suit, &trump_suit) {
         *winning_player_lead_relative_position = Some(*lead_relative_position);

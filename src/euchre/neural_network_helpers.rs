@@ -105,6 +105,39 @@ pub fn get_play_available_actions(
     return available_actions;
 }
 
+pub fn get_card_play_action(card: &Card) -> ActionIndex {
+    match *card {
+        // Spade
+        CARD_SPADE_NINE => return ActionIndex::PlaySpadeNine,
+        CARD_SPADE_TEN => return ActionIndex::PlaySpadeTen,
+        CARD_SPADE_JACK => return ActionIndex::PlaySpadeJack,
+        CARD_SPADE_QUEEN => return ActionIndex::PlaySpadeQueen,
+        CARD_SPADE_KING => return ActionIndex::PlaySpadeKing,
+        CARD_SPADE_ACE => return ActionIndex::PlaySpadeAce,
+        // Heart
+        CARD_HEART_NINE => return ActionIndex::PlayHeartNine,
+        CARD_HEART_TEN => return ActionIndex::PlayHeartTen,
+        CARD_HEART_JACK => return ActionIndex::PlayHeartJack,
+        CARD_HEART_QUEEN => return ActionIndex::PlayHeartQueen,
+        CARD_HEART_KING => return ActionIndex::PlayHeartKing,
+        CARD_HEART_ACE => return ActionIndex::PlayHeartAce,
+        // Diamond
+        CARD_DIAMOND_NINE => return ActionIndex::PlayDiamondNine,
+        CARD_DIAMOND_TEN => return ActionIndex::PlayDiamondTen,
+        CARD_DIAMOND_JACK => return ActionIndex::PlayDiamondJack,
+        CARD_DIAMOND_QUEEN => return ActionIndex::PlayDiamondQueen,
+        CARD_DIAMOND_KING => return ActionIndex::PlayDiamondKing,
+        CARD_DIAMOND_ACE => return ActionIndex::PlayDiamondAce,
+        // Club
+        CARD_CLUB_NINE => return ActionIndex::PlayClubNine,
+        CARD_CLUB_TEN => return ActionIndex::PlayClubTen,
+        CARD_CLUB_JACK => return ActionIndex::PlayClubJack,
+        CARD_CLUB_QUEEN => return ActionIndex::PlayClubQueen,
+        CARD_CLUB_KING => return ActionIndex::PlayClubKing,
+        CARD_CLUB_ACE => return ActionIndex::PlayClubAce,
+    }
+}
+
 pub fn set_trick_lead(
     input: &mut NeuralNetworkInput,
     relative_position: &RelativePosition,
