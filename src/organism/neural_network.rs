@@ -324,4 +324,57 @@ impl NeuralNetwork {
         self.final_activation_functions = in_network.final_activation_functions;
         Ok(())
     }
+
+    pub fn stats(&self) {
+        let mut connected_count = 0;
+        let mut disconnected_count = 0;
+        let mut sigmoid_count = 0;
+        let mut leaky_relu_count = 0;
+        let mut tanh_count = 0;
+        for j in 0..HIDDEN_NODES {
+            match self.hidden_activation_functions[j] {
+                ActivationFunctionType::Sigmoid => sigmoid_count += 1,
+                ActivationFunctionType::LeakyRelu => leaky_relu_count += 1,
+                ActivationFunctionType::Tanh => tanh_count += 1,
+            }
+            for i in 0..StateIndex::COUNT {
+                match self.connections_input_hidden[i][j] {
+                    true => connected_count += 1,
+                    false => disconnected_count += 1,
+                }
+            }
+        }
+        for j in 0..ActionIndex::COUNT {
+            match self.final_activation_functions[j] {
+                ActivationFunctionType::Sigmoid => sigmoid_count += 1,
+                ActivationFunctionType::LeakyRelu => leaky_relu_count += 1,
+                ActivationFunctionType::Tanh => tanh_count += 1,
+            }
+            for i in 0..HIDDEN_NODES {
+                match self.connections_hidden_output[i][j] {
+                    true => connected_count += 1,
+                    false => disconnected_count += 1,
+                }
+            }
+        }
+        println!(
+            "Connection Rate: {}",
+            (connected_count as f64) / (connected_count as f64 + disconnected_count as f64)
+        );
+        println!(
+            "Sigmoid Rate: {}",
+            (sigmoid_count as f64)
+                / (sigmoid_count as f64 + leaky_relu_count as f64 + tanh_count as f64)
+        );
+        println!(
+            "Leaky Relu Rate: {}",
+            (leaky_relu_count as f64)
+                / (sigmoid_count as f64 + leaky_relu_count as f64 + tanh_count as f64)
+        );
+        println!(
+            "Tanh Rate: {}",
+            (tanh_count as f64)
+                / (sigmoid_count as f64 + leaky_relu_count as f64 + tanh_count as f64)
+        );
+    }
 }

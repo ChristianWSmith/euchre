@@ -41,6 +41,20 @@ enum Command {
         #[structopt(short, long)]
         games: Option<usize>,
     },
+    #[structopt(about = "Query an agent for its stats")]
+    Stats {
+        #[structopt(short, long)]
+        file: String,
+    },
+    #[structopt(about = "Run a game between agents")]
+    Breed {
+        #[structopt(short, long)]
+        first_parent: String,
+        #[structopt(short, long)]
+        second_parent: String,
+        #[structopt(short, long)]
+        child: String,
+    },
 }
 
 fn main() {
@@ -75,5 +89,13 @@ fn main() {
                 games.unwrap_or_else(|| 3),
             );
         }
+        Command::Stats { file } => {
+            stats_cli(file);
+        }
+        Command::Breed {
+            first_parent,
+            second_parent,
+            child,
+        } => breed_cli(first_parent, second_parent, child),
     };
 }

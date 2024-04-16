@@ -100,3 +100,41 @@ pub fn compete_cli(
 
     handle.join().unwrap().ok();
 }
+
+pub fn stats_cli(file: String) {
+    // max supported population size + 31, don't ask why
+    let stack_size: usize = mem::size_of::<Organism>() * (1 + 31);
+
+    let handle = thread::Builder::new()
+        .stack_size(stack_size)
+        .spawn(move || -> std::io::Result<()> {
+            let mut nn = NeuralNetwork::new();
+            nn.load_from_file(file.as_str())?;
+            nn.stats();
+            Ok(())
+        })
+        .unwrap();
+
+    handle.join().unwrap().ok();
+}
+
+pub fn breed_cli(parent1_file: String, parent2_file: String, child_file: String) {
+    // max supported population size + 31, don't ask why
+    let stack_size: usize = mem::size_of::<Organism>() * (1 + 31);
+
+    let handle = thread::Builder::new()
+        .stack_size(stack_size)
+        .spawn(move || -> std::io::Result<()> {
+            let mut parent1 = NeuralNetwork::new();
+            let mut parent2 = NeuralNetwork::new();
+            parent1.load_from_file(parent1_file.as_str())?;
+            parent2.load_from_file(parent2_file.as_str())?;
+            // TODO: mutation rate and magnitude as arguments
+            let child = parent1.crossover(&parent2, 0.01, 0.1);
+            child.save_to_file(child_file.as_str())?;
+            Ok(())
+        })
+        .unwrap();
+
+    handle.join().unwrap().ok();
+}
