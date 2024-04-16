@@ -46,6 +46,7 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
     out_dir: String,
     thread_count: usize,
     stack_size: usize,
+    starting_population_dir: Option<String>,
 ) -> Result<Organism, Box<dyn Error>> {
     // Initialize
     println!("Initializing");
@@ -68,7 +69,29 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
         .build()
         .unwrap();
 
-    println!("Spawning Organisms");
+    let mut file_names: Vec<String> = Vec::new();
+    let mut loading = false;
+    let mut verbage = "Spawning";
+    match starting_population_dir {
+        Some(dir) => {
+            let entries = fs::read_dir(dir);
+            file_names = entries?
+                .filter_map(|entry| {
+                    entry
+                        .ok()
+                        .and_then(|e| e.path().to_str().map(|s| s.to_owned()))
+                })
+                .collect::<Vec<String>>();
+            loading = true;
+            verbage = "Loading";
+        }
+        None => (),
+    }
+    if loading && file_names.len() != POPULATION_SIZE {
+        panic!("Invalid generation size per starting pool");
+    }
+
+    println!("{} Organisms", verbage);
 
     let organism_count = Arc::new(Mutex::new(0));
     pool.install(|| {
@@ -83,11 +106,16 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
                     organism_count_val = *organism_count_guard;
                 }
                 println!(
-                    "Spawning Organisms - {}/{}",
-                    organism_count_val, POPULATION_SIZE
+                    "{} Organisms - {}/{}",
+                    verbage, organism_count_val, POPULATION_SIZE
                 );
                 let mut nn = NeuralNetwork::new();
-                nn.init();
+                if loading {
+                    nn.load_from_file(file_names[organism_count_val - 1].as_str())
+                        .unwrap();
+                } else {
+                    nn.init();
+                }
                 (*organism).brain = Some(nn);
             });
     });
