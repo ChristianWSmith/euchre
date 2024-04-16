@@ -75,7 +75,7 @@ pub enum Rank {
     Ace,
 }
 
-#[derive(EnumCountMacro, Debug)]
+#[derive(EnumCountMacro, Debug, Copy, Clone, PartialEq)]
 #[repr(usize)]
 pub enum ActionIndex {
     PlaySpadeNine = 0,
@@ -147,7 +147,7 @@ impl ActionIndex {
     }
 }
 
-#[derive(EnumCountMacro)]
+#[derive(EnumCountMacro, Debug)]
 #[repr(usize)]
 pub enum StateIndex {
     // Score
@@ -723,4 +723,11 @@ pub enum StateIndex {
     Trick4Card4ClubQueen,
     Trick4Card4ClubKing,
     Trick4Card4ClubAce,
+}
+
+impl StateIndex {
+    pub fn from_usize(x: usize) -> StateIndex {
+        let y: StateIndex = unsafe { ::std::mem::transmute(x) };
+        y
+    }
 }

@@ -1,4 +1,4 @@
-use std::{mem, thread};
+use std::{io::Write, mem, thread};
 
 use crate::{
     euchre::{enums::Team, game::play_euchre},
@@ -157,10 +157,27 @@ pub fn tutor_cli(tutor_file: String, left_file: String, right_file: String, ally
             tutor.tutor_mode = true;
             loop {
                 play_euchre(&tutor, &left, &ally, &right);
-                // TODO: ask the user if they want to quit
-                break;
+                loop {
+                    print!("Do you want to continue? [Y/n]: ");
+                    std::io::stdout().flush().expect("Failed to flush stdout");
+
+                    let mut input = String::new();
+                    std::io::stdin()
+                        .read_line(&mut input)
+                        .expect("Failed to read line");
+
+                    let input = input.trim().to_lowercase();
+                    if input == "y" || input == "Y" || input == "" {
+                        println!("Continuing...");
+                        break;
+                    } else if input == "n" || input == "N" {
+                        println!("Exiting...");
+                        return Ok(());
+                    } else {
+                        println!("Invalid input, please enter 'Y' or 'N'");
+                    }
+                }
             }
-            Ok(())
         })
         .unwrap();
 
