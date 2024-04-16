@@ -55,6 +55,17 @@ enum Command {
         #[structopt(short, long)]
         child: String,
     },
+    #[structopt(about = "Play with a tutor")]
+    Tutor {
+        #[structopt(short, long)]
+        tutor: String,
+        #[structopt(short, long)]
+        left: String,
+        #[structopt(short, long)]
+        right: String,
+        #[structopt(short, long)]
+        ally: String,
+    },
 }
 
 fn main() {
@@ -97,5 +108,13 @@ fn main() {
             second_parent,
             child,
         } => breed_cli(first_parent, second_parent, child),
+        Command::Tutor {
+            tutor,
+            left,
+            right,
+            ally,
+        } => {
+            tutor_cli(tutor, left, right, ally);
+        }
     };
 }

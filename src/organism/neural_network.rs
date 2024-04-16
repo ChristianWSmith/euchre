@@ -6,6 +6,7 @@ use strum::{EnumCount, IntoEnumIterator};
 use strum_macros::{EnumCount, EnumIter};
 
 use crate::euchre::enums::{ActionIndex, StateIndex};
+use crate::organism::helpers::get_player_action;
 
 const HIDDEN_NODES: usize = (StateIndex::COUNT + ActionIndex::COUNT) * 2 / 3;
 
@@ -43,6 +44,7 @@ enum ActivationFunctionType {
 #[derive(PartialEq, Debug, Copy, Clone)]
 #[repr(C)]
 pub struct NeuralNetwork {
+    pub tutor_mode: bool,
     weights_input_hidden: [[f64; HIDDEN_NODES]; StateIndex::COUNT],
     weights_hidden_output: [[f64; ActionIndex::COUNT]; HIDDEN_NODES],
     connections_input_hidden: [[bool; HIDDEN_NODES]; StateIndex::COUNT],
@@ -65,6 +67,7 @@ impl NeuralNetwork {
         let final_activation_functions = [ActivationFunctionType::Sigmoid; ActionIndex::COUNT];
 
         NeuralNetwork {
+            tutor_mode: false,
             weights_input_hidden,
             weights_hidden_output,
             connections_input_hidden,
@@ -281,6 +284,13 @@ impl NeuralNetwork {
         indices.sort_by(|&a, &b| final_outputs[b].partial_cmp(&final_outputs[a]).unwrap());
         for action_index in indices {
             if available_actions[action_index] {
+                if self.tutor_mode {
+                    return get_player_action(
+                        inputs,
+                        available_actions,
+                        &ActionIndex::from_usize(action_index),
+                    );
+                }
                 return ActionIndex::from_usize(action_index);
             }
         }

@@ -138,3 +138,31 @@ pub fn breed_cli(parent1_file: String, parent2_file: String, child_file: String)
 
     handle.join().unwrap().ok();
 }
+
+pub fn tutor_cli(tutor_file: String, left_file: String, right_file: String, ally_file: String) {
+    // max supported population size + 31, don't ask why
+    let stack_size: usize = mem::size_of::<Organism>() * (4 + 31);
+
+    let handle = thread::Builder::new()
+        .stack_size(stack_size)
+        .spawn(move || -> std::io::Result<()> {
+            let mut tutor = NeuralNetwork::new();
+            let mut left: NeuralNetwork = NeuralNetwork::new();
+            let mut right = NeuralNetwork::new();
+            let mut ally = NeuralNetwork::new();
+            tutor.load_from_file(tutor_file.as_str())?;
+            left.load_from_file(left_file.as_str())?;
+            right.load_from_file(right_file.as_str())?;
+            ally.load_from_file(ally_file.as_str())?;
+            tutor.tutor_mode = true;
+            loop {
+                play_euchre(&tutor, &left, &ally, &right);
+                // TODO: ask the user if they want to quit
+                break;
+            }
+            Ok(())
+        })
+        .unwrap();
+
+    handle.join().unwrap().ok();
+}
