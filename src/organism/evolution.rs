@@ -47,6 +47,7 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
     thread_count: usize,
     stack_size: usize,
     starting_population_dir: Option<String>,
+    no_gen_save: bool,
 ) -> Result<Organism, Box<dyn Error>> {
     // Initialize
     println!("Initializing");
@@ -218,22 +219,24 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
             }
         }
 
-        println!("Generation {} - Saving Generation", generation);
-        fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
-        pool.install(|| {
-            organisms.par_iter().enumerate().for_each(|(i, organism)| {
-                let filename = format!(
-                    "{}/gen_{}/index({})-lifetime({})-generation({}).bin",
-                    out_dir, generation, i, organism.lifetime, organism.generation
-                );
-                organism
-                    .brain
-                    .as_ref()
-                    .unwrap()
-                    .save_to_file(&filename)
-                    .unwrap();
+        if !no_gen_save {
+            println!("Generation {} - Saving Generation", generation);
+            fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
+            pool.install(|| {
+                organisms.par_iter().enumerate().for_each(|(i, organism)| {
+                    let filename = format!(
+                        "{}/gen_{}/index({})-lifetime({})-generation({}).bin",
+                        out_dir, generation, i, organism.lifetime, organism.generation
+                    );
+                    organism
+                        .brain
+                        .as_ref()
+                        .unwrap()
+                        .save_to_file(&filename)
+                        .unwrap();
+                });
             });
-        });
+        }
     }
 
     // Round Robin for Champ

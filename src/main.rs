@@ -29,6 +29,8 @@ enum Command {
         out_dir: Option<String>,
         #[structopt(short, long)]
         starting_population_dir: Option<String>,
+        #[structopt(short, long)]
+        no_gen_save: bool,
     },
     #[structopt(about = "Run a game between agents")]
     Compete {
@@ -80,6 +82,7 @@ fn main() {
             thread_count,
             out_dir,
             starting_population_dir,
+            no_gen_save,
         } => {
             evolve_cli(
                 population_size.unwrap_or_else(|| 4),
@@ -87,6 +90,7 @@ fn main() {
                 thread_count.unwrap_or_else(|| 1),
                 out_dir.unwrap_or_else(|| "out".to_string()),
                 starting_population_dir,
+                no_gen_save,
             );
         }
         Command::Compete {

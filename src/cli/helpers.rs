@@ -17,6 +17,7 @@ pub fn evolve_cli(
     thread_count: usize,
     out_dir: String,
     starting_population_dir: Option<String>,
+    no_gen_save: bool,
 ) {
     if !VALID_POPULATION_SIZES.contains(&population_size) {
         println!(
@@ -37,16 +38,16 @@ pub fn evolve_cli(
         .stack_size(stack_size)
         .spawn(move || -> std::io::Result<()> {
             match population_size {
-                2048 => evolve::<2048, 1024>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                1024 => evolve::<1024, 512>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                512 => evolve::<512, 256>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                256 => evolve::<256, 128>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                128 => evolve::<128, 64>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                64 => evolve::<64, 32>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                32 => evolve::<32, 16>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                16 => evolve::<16, 8>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                8 => evolve::<8, 4>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
-                4 => evolve::<4, 2>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir).unwrap(),
+                2048 => evolve::<2048, 1024>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                1024 => evolve::<1024, 512>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                512 => evolve::<512, 256>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                256 => evolve::<256, 128>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                128 => evolve::<128, 64>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                64 => evolve::<64, 32>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                32 => evolve::<32, 16>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                16 => evolve::<16, 8>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                8 => evolve::<8, 4>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
+                4 => evolve::<4, 2>(generations, out_dir.clone(), thread_count, stack_size, starting_population_dir, no_gen_save).unwrap(),
                 _ => panic!("Invalid population size.  Valid populations sizes: [2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4]")
             };
             Ok(())
