@@ -219,7 +219,7 @@ pub fn evolve<const POPULATION_SIZE: usize, const BREEDING_POOL_SIZE: usize>(
             }
         }
 
-        if !no_gen_save {
+        if !no_gen_save || generation == generations {
             fs::create_dir_all(format!("{}/gen_{}", out_dir, generation))?;
             println!("Generation {} - Saving Generation", generation);
             pool.install(|| {
