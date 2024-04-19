@@ -384,9 +384,11 @@ fn run_discard(
     input: &mut NeuralNetworkInput,
     hand: &mut [Option<Card>; 6],
 ) {
+    set_hand(input, hand);
     let action = player.get_action(input, &get_discard_available_actions(hand));
     set_discarded(input, &action);
     discard_from_hand(hand, &action);
+    set_hand(input, hand);
 }
 
 fn run_bid_suit(
